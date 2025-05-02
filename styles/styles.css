@@ -1,0 +1,104 @@
+body {
+    background-color: rgb(20, 20, 23);
+    color: white;
+    margin: 0;
+    height: 100dvh;
+    width: 100dvw;
+    font-family: "Inter", 'Amiri', sans-serif, 'Noto Color Emoji';
+    user-select: none;
+}
+
+* {
+    transition: all 0.3s;
+}
+
+h1 {
+    font-size: 30px;
+}
+
+topbar {
+    flex: 0 1;
+    padding: 0.5dvw 1dvh;
+    font-size: 35px;
+    background-color: rgb(0, 0, 0);
+    display: flex;
+    border-bottom: 1px solid #333;
+    align-items: center;
+    font-weight: bold;
+    gap: 2dvw;
+    pointer-events: none;
+}
+
+topbar img {
+    height: 50px;
+}
+
+#about_me {
+    text-align: center;
+    overflow: hidden;
+}
+
+#about_me a {
+    color: white;
+    font-weight: bold;
+}
+
+#heart a {
+    color: rgb(255, 59, 59);
+    text-decoration: none;
+}
+
+#about_me #heart {
+    line-height: 0px;
+    font-size: 50px;
+    color: rgb(255, 59, 59);
+}
+
+#about_me #heart:hover {
+    color: rgb(255, 0, 0);
+    text-shadow: 0 0 5px rgb(255, 0, 0);
+    animation: heartbeat 0.6s infinite;
+}
+
+@keyframes heartbeat {
+    0% {
+        transform: scale(1);
+    }
+    14% {
+        transform: scale(1.1);
+    }
+    28% {
+        transform: scale(1);
+    }
+    42% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+#projects {
+    text-align: center;
+    padding: 5px;
+}
+
+#projects a {
+    color: white;
+    font-weight: bold;
+    background-color: #111111;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: padding 0s;
+}
+
+#projects a:hover {
+    background-color: rgb(39, 39, 39);
+    border: 1px solid;
+    padding: 9px;
+    text-shadow: 0 0 5px #fff;
+}
