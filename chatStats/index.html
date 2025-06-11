@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>unii</title>
+    <link rel="icon" href="https://cdn.unii.dev/favicon.png" type="image/png">
+
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+    <link rel="canonical" href="https://www.unii.dev/chatStats/" />
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    </style>
+</head>
+<body>
+    <topbar>
+        <div class="logo">
+            <img src="https://cdn.unii.dev/logo.avif" alt="Logo">
+        </div>
+        <div class="site_title">
+            UNI - CHAT STATS
+            <div style="font-size: small;">uniiDev chat stats viewer</div>
+        </div>
+        <div class="home_button" style="margin-left:auto;">
+            <a href="/chatStats/" style="text-decoration:none; color:inherit; pointer-events:all;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home "><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Home
+            </a>
+        </div>
+    </topbar>
+
+    <section id="streamers_buttons"></section>
+    <section id="json_data"></section>
+
+    <script src="index.js"></script>
+</body>
+</html>

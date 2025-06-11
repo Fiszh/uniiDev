@@ -1,0 +1,123 @@
+body {
+    background-color: rgb(20, 20, 23);
+    color: white;
+    margin: 0;
+    height: 100dvh;
+    width: 100dvw;
+    font-family: "Inter", 'Amiri', sans-serif, 'Noto Color Emoji';
+    user-select: none;
+    overflow-x: hidden;
+}
+
+* {
+    transition: all 0.3s;
+}
+
+topbar {
+    box-sizing: border-box;
+    padding: 0.5dvw 4dvh;
+    font-size: 35px;
+    background-color: rgb(0, 0, 0);
+    display: flex;
+    border-bottom: 1px solid #333;
+    align-items: center;
+    font-weight: bold;
+    gap: 2dvw;
+    pointer-events: none;
+    justify-content: space-between;
+    width: 100%;
+}
+
+topbar img {
+    height: 50px;
+}
+
+#streamers_buttons {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 25px;
+    gap: 15px;
+}
+
+button {
+    box-sizing: border-box;
+    padding: 2px 15px;
+    border: 1px white solid;
+    color: white;
+    background-color: #1f1f1f;
+    font-size: 2rem;
+    border-radius: 10px;
+}
+
+button:hover {
+    padding: 5px 20px;
+    font-size: 2.2rem;
+}
+
+ul,
+ol {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+li {
+    list-style-type: none;
+    display: flex;
+    gap: 5px;
+
+}
+
+li img {
+    max-height: 15px;
+}
+
+#json_data {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    padding: 25px;
+}
+
+.stat_row {
+    display: flex;
+    flex-direction: column;
+    height: 80dvh;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding-top: 2px;
+    border: 1px white solid;
+    border-radius: 15px;
+    background-color: #141414;
+}
+
+.stat_name {
+    text-align: center;
+    font-weight: bold;
+}
+
+.stat_data {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-top: 1px white solid;
+    padding: 0px 15px;
+}
+
+.stat_data::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+
+.stat_data::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 4px;
+}
