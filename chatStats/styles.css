@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(20, 20, 23);
+    background-color: #161a20;
     color: white;
     margin: 0;
     height: 100dvh;
@@ -7,6 +7,9 @@ body {
     font-family: "Inter", 'Amiri', sans-serif, 'Noto Color Emoji';
     user-select: none;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 * {
@@ -69,38 +72,57 @@ li {
     list-style-type: none;
     display: flex;
     gap: 5px;
-
+    justify-content: space-between;
 }
 
 li img {
     max-height: 15px;
 }
 
+span.position {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #374151;
+    color: white;
+    width: 2rem;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+}
+
+span {
+    display: inline-flex;
+    align-items: center;
+}
+
 #json_data {
-    display: flex;
-    width: 100%;
+    display: none;
+    width: 90%;
     justify-content: center;
     gap: 25px;
     flex-wrap: wrap;
     box-sizing: border-box;
-    padding: 25px;
+    flex-direction: column;
 }
 
-.stat_row {
+.stat_info {
     display: flex;
     flex-direction: column;
-    height: 80dvh;
+    max-height: 40dvh;
     overflow: hidden;
     box-sizing: border-box;
-    padding-top: 2px;
-    border: 1px white solid;
+    width: 100%;
+    border: 1px #333 solid;
     border-radius: 15px;
-    background-color: #141414;
+    background-color: #1c1e25;
 }
 
-.stat_name {
-    text-align: center;
-    font-weight: bold;
+.stat_info:hover {
+    border: 1px white solid;
+}
+
+.stat_info:hover .stat_data {
+    border-top: 1px white solid;
 }
 
 .stat_data {
@@ -108,8 +130,12 @@ li img {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    border-top: 1px white solid;
+    border-top: 1px #333 solid;
     padding: 0px 15px;
+    height: 100%;
+    gap: 5px;
+    box-sizing: border-box;
+    padding-top: 5px;
 }
 
 .stat_data::-webkit-scrollbar {
@@ -120,4 +146,89 @@ li img {
 .stat_data::-webkit-scrollbar-thumb {
     background-color: white;
     border-radius: 4px;
+}
+
+#row_additional {
+    display: flex;
+    justify-content: space-between;
+}
+
+#row_additional>* {
+    background-color: #1c1e25;
+    box-sizing: border-box;
+    padding: 25px 25px 0px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    font-size: 1.4rem;
+    gap: 15px;
+    height: 100%;
+    border-radius: 15px;
+    border: 1px #333 solid;
+}
+
+#row_additional>*:hover {
+    border: 1px white solid;
+}
+
+#row_additional img {
+    height: 50px;
+}
+
+#stat_number {
+    font-weight: bold;
+}
+
+.stat_row {
+    display: flex;
+    gap: 25px;
+}
+
+.stat_header {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 10px 0px 15px;
+}
+
+.stat_name {
+    font-weight: bold;
+}
+
+li span {
+    gap: 5px;
+    display: flex;
+}
+
+.stat_data li:nth-child(1) .position {
+    background: linear-gradient(to bottom right, #facc15, #ca8a04);
+    box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
+    background-color: #c3b465;
+    color: #333;
+}
+
+.stat_data li:nth-child(2) .position {
+    background: linear-gradient(to bottom right, #d1d5db, #6b7280);
+    box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
+    background-color: #bfbfbf;
+    color: #444;
+}
+
+.stat_data li:nth-child(3) .position {
+    background: linear-gradient(to bottom right, #f59e0b, #b45309);
+    box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
+    background-color: #a57a53;
+    color: #333;
+}
+
+span.value {
+    font-weight: bold;
+}
+
+span.item_name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 14.5dvw;
 }

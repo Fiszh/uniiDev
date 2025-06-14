@@ -107,12 +107,12 @@ async function displayChatStats(streamer_name, json) {
         const overall = mergeMessages(data);
 
         const stats_data = [
-            { name: "message_count_offline", data: data.message_count_offline },
-            { name: "message_count_online", data: data.message_count_online },
-            { name: "overall_messages", data: overall },
-            { name: "top_linkers", data: data.top_linkers },
-            { name: "top_emoters", data: data.top_emoters },
-            { name: "top_emotes", data: data.top_emotes },
+            { name: "message_count_offline", data: data.message_count_offline, row: 0, icon: "message_circle" },
+            { name: "message_count_online", data: data.message_count_online, row: 0, icon: "message_circle_green" },
+            { name: "overall_messages", data: overall, row: 0, icon: "trending_up_purple" },
+            { name: "top_linkers", data: data.top_linkers, row: 1, icon: "link" },
+            { name: "top_emoters", data: data.top_emoters, row: 1, icon: "smile_yellow" },
+            { name: "top_emotes", data: data.top_emotes, row: null, icon: null },
         ];
 
         for (const key in stats_data) {
@@ -122,29 +122,35 @@ async function displayChatStats(streamer_name, json) {
 
             // FOR STATS WITH MULTIPLE ROWS
             if (["top_emotes"].includes(stat.name)) {
-                for (stat_key in stat.data) {
+                for (const stat_key in stat.data) {
                     const stat_row = stat.data[stat_key];
+                    const entries = Object.entries(stat_row);
 
-                    const channel_emotes = Object.entries(stat_row)
+                    const channel_emotes = entries
                         .filter(([key, emote]) => emote.set === "channel")
                         .map(([key, emote]) => emote);
 
-                    const global_emotes = Object.entries(stat_row)
+                    const global_emotes = entries
                         .filter(([key, emote]) => emote.set === "global")
                         .map(([key, emote]) => emote);
 
-                    if (channel_emotes?.length) {
+                    const other_emotes = entries
+                        .filter(([key, emote]) => emote.set !== "channel" && emote.set !== "global")
+                        .map(([key, emote]) => emote);
+
+                    if (channel_emotes.length) {
                         const stat_name = `${stat_key} - Channel`;
-                        displayList(channel_emotes, stat_name);
+                        displayList(channel_emotes, stat_name, 3, getIcon(stat_name));
                     }
 
-                    if (global_emotes?.length) {
+                    if (global_emotes.length) {
                         const stat_name = `${stat_key} - Global`;
-                        displayList(global_emotes, stat_name);
+                        displayList(global_emotes, stat_name, 3, getIcon(stat_name));
                     }
 
-                    if (!global_emotes?.length && !channel_emotes?.length) {
-                        displayList(stat_row, stat_key);
+                    if (other_emotes.length) {
+                        const stat_name = stat_key;
+                        displayList(other_emotes, stat_name, 3, getIcon(stat_name));
                     }
                 }
             } else {
@@ -154,31 +160,75 @@ async function displayChatStats(streamer_name, json) {
                         return acc;
                     }, {});
 
-                    displayList({ name: stat.name, data: message_count });
+                    displayList({ name: stat.name, data: message_count, row: stat.row, icon: stat.icon });
                 } else {
                     displayList(stat);
                 }
             }
         }
+
+        smoothCount(document.querySelector('#users #stat_number'), data["unique_chatters"]);
+        smoothCount(document.querySelector('#messages #stat_number'), data["total_messages"]);
+        smoothCount(document.querySelector('#average_messages #stat_number'), data["total_messages"] / data["unique_chatters"]);
     } else {
         json_data.innerHTML = "Error, no data...";
     }
 }
 
-async function displayList(stat, stat_key) {
+function getIcon(name) {
+    const lowercase = name.toLowerCase();
+    if (lowercase.includes("7tv")) {
+        return lowercase.includes("global") ? "smile_mint" : "smile_blue";
+    }
+    if (lowercase.includes("bttv")) return "smile_orange";
+    if (lowercase.includes("ffz")) return "smile_pink";
+    return null;
+}
+
+async function displayList(stat, stat_key, row, icon) {
     const stat_row = document.createElement("div");
-    stat_row.className = "stat_row";
+    stat_row.className = "stat_info";
+
+    const stat_header = document.createElement("div");
+    stat_header.className = "stat_header";
 
     const stat_name = document.createElement("div");
     stat_name.className = "stat_name";
 
-    const stat_search = document.createElement("input");
-    stat_search.className = "stat_search";
+    const stat_icon = document.createElement("img");
+    stat_icon.className = "stat_icon";
+
+    if (!icon && stat?.icon) {
+        icon = stat.icon;
+    }
+
+    if (icon) {
+        stat_icon.src = `imgs/${icon}.svg`;
+        stat_icon.alt = icon;
+    }
 
     const stat_data = document.createElement("ul");
     stat_data.className = "stat_data";
 
+    if (!row && stat?.row >= 0) {
+        row = stat.row;
+    }
+
+    if (!(row >= 0)) {
+        return;
+    }
+
     if (!stat) { return; };
+
+    let row_element = document.getElementById(`row_${row}`);
+
+    if (!row_element) {
+        row_element = document.createElement("section");
+
+        row_element.id = `row_${row}`;
+        row_element.className = "stat_row";
+        json_data.appendChild(row_element);
+    }
 
     const isCountBased = typeof Object.values(stat)[0] === 'object' && 'count' in Object.values(stat)[0];
 
@@ -204,33 +254,77 @@ async function displayList(stat, stat_key) {
     sortedKeys.forEach((stat_key, i) => {
         const row_data = document.createElement("li");
 
-        const numberSpan = document.createElement('span');
-        numberSpan.textContent = `${i + 1}. `;
-        row_data.appendChild(numberSpan);
+        const leftSpan = document.createElement('span');
+        const rightSpan = document.createElement('span');
 
+        const numberSpan = document.createElement('span');
+        numberSpan.className = "position";
+        numberSpan.textContent = `${i + 1}`;
+
+        let img;
         if (isCountBased && stat[stat_key].url) {
-            const img = document.createElement('img');
+            img = document.createElement('img');
             img.src = stat[stat_key].url;
             img.loading = "lazy";
-            row_data.appendChild(img);
         }
 
-        const textSpan = document.createElement('span');
+        const nameSpan = document.createElement('span');
         let val = isCountBased ? stat[stat_key].count : stat.data[stat_key];
+        nameSpan.textContent = stat?.[stat_key]?.name ? stat[stat_key].name : stat_key;
+        nameSpan.className = "item_name";
+
         if (typeof val === 'number') {
             val = val.toLocaleString();
         }
-        textSpan.textContent = `${stat?.[stat_key]?.name ? stat[stat_key].name : stat_key}: ${val}`;
-        row_data.appendChild(textSpan);
+
+        const valueSpan = document.createElement('span');
+        valueSpan.className = "value";
+        valueSpan.textContent = val;
+
+        leftSpan.appendChild(numberSpan);
+        if (img) { leftSpan.appendChild(img) };
+        leftSpan.appendChild(nameSpan);
+        rightSpan.appendChild(valueSpan);
+
+        row_data.appendChild(leftSpan);
+        row_data.appendChild(rightSpan);
 
         stat_data.appendChild(row_data);
     });
 
-    // stat_row.appendChild(stat_search);
-    stat_row.appendChild(stat_name);
+    stat_header.appendChild(stat_icon);
+    stat_header.appendChild(stat_name);
+    stat_row.appendChild(stat_header);
     stat_row.appendChild(stat_data);
 
-    json_data.appendChild(stat_row);
+    row_element.appendChild(stat_row);
+}
+
+function smoothCount(element, target, duration = 1000, maxDecimals = 2) {
+    const start = +element.textContent.replace(/,/g, '') || 0;
+    const range = target - start;
+    const startTime = performance.now();
+
+    function numberWithCommas(x) {
+        let fixed = x.toFixed(maxDecimals);
+        fixed = fixed.replace(/\.?0+$/, '');
+        const parts = fixed.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
+    }
+
+    function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = start + range * progress;
+        element.textContent = numberWithCommas(current);
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+
+    requestAnimationFrame(update);
 }
 
 getQueryParams()
@@ -238,6 +332,7 @@ getQueryParams()
         if (Object.keys(result)?.length) {
             if (result["name"]) {
                 if (result["json"]) {
+                    json_data.style.display = "flex";
                     displayChatStats(result["name"], result["json"]);
                 } else {
                     const chatStats_dates = await getChatStatsDates(result["name"]);
