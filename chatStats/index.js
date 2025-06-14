@@ -80,20 +80,22 @@ function mergeMessages(data) {
 
     function addCounts(source) {
         if (Array.isArray(source)) {
-            for (const { username, message_count } of source) {
-                overallMessages[username] = (overallMessages[username] || 0) + message_count;
+            for (const { name, count } of source) {
+                overallMessages[name] = (overallMessages[name] || 0) + count;
             }
         } else if (typeof source === 'object' && source !== null) {
-            for (const [username, count] of Object.entries(source)) {
-                overallMessages[username] = (overallMessages[username] || 0) + count;
+            for (const [name, message_count] of Object.entries(source)) {
+                overallMessages[name] = (overallMessages[name] || 0) + message_count;
             }
         }
     }
 
-    addCounts(data.message_count_offline);
-    addCounts(data.message_count_online);
+    addCounts(data["message_count_offline"]["data"]);
+    addCounts(data["message_count_online"]["data"]);
 
-    return overallMessages;
+    return Object.entries(overallMessages)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
 }
 
 async function displayChatStats(streamer_name, json) {
@@ -106,65 +108,28 @@ async function displayChatStats(streamer_name, json) {
     if (data) {
         const overall = mergeMessages(data);
 
-        const stats_data = [
-            { name: "message_count_offline", data: data.message_count_offline, row: 0, icon: "message_circle" },
-            { name: "message_count_online", data: data.message_count_online, row: 0, icon: "message_circle_green" },
-            { name: "overall_messages", data: overall, row: 0, icon: "trending_up_purple" },
-            { name: "top_linkers", data: data.top_linkers, row: 1, icon: "link" },
-            { name: "top_emoters", data: data.top_emoters, row: 1, icon: "smile_yellow" },
-            { name: "top_emotes", data: data.top_emotes, row: null, icon: null },
-        ];
+        data["overall_messages"] = {
+            stat_name: "Overall Messages",
+            row: 1,
+            data: overall
+        }
 
-        for (const key in stats_data) {
-            const stat = stats_data[key];
+        let allStats = [];
 
-            if (!stat.data) { continue; };
+        for (const key in data) {
+            const stat = data[key];
 
-            // FOR STATS WITH MULTIPLE ROWS
-            if (["top_emotes"].includes(stat.name)) {
-                for (const stat_key in stat.data) {
-                    const stat_row = stat.data[stat_key];
-                    const entries = Object.entries(stat_row);
-
-                    const channel_emotes = entries
-                        .filter(([key, emote]) => emote.set === "channel")
-                        .map(([key, emote]) => emote);
-
-                    const global_emotes = entries
-                        .filter(([key, emote]) => emote.set === "global")
-                        .map(([key, emote]) => emote);
-
-                    const other_emotes = entries
-                        .filter(([key, emote]) => emote.set !== "channel" && emote.set !== "global")
-                        .map(([key, emote]) => emote);
-
-                    if (channel_emotes.length) {
-                        const stat_name = `${stat_key} - Channel`;
-                        displayList(channel_emotes, stat_name, 3, getIcon(stat_name));
-                    }
-
-                    if (global_emotes.length) {
-                        const stat_name = `${stat_key} - Global`;
-                        displayList(global_emotes, stat_name, 3, getIcon(stat_name));
-                    }
-
-                    if (other_emotes.length) {
-                        const stat_name = stat_key;
-                        displayList(other_emotes, stat_name, 3, getIcon(stat_name));
-                    }
-                }
-            } else {
-                if (stat?.data?.[0]?.message_count || stat?.data?.[0]?.emote_count) {
-                    const message_count = stat.data.reduce((acc, user) => {
-                        acc[user.username] = user?.message_count || user?.emote_count || 0;
-                        return acc;
-                    }, {});
-
-                    displayList({ name: stat.name, data: message_count, row: stat.row, icon: stat.icon });
-                } else {
-                    displayList(stat);
-                }
+            if (stat && typeof stat === "object" && "data" in stat) {
+                allStats.push(stat);
             }
+        }
+
+        allStats.sort((a, b) => a.row - b.row);
+
+        for (const stat of allStats) {
+            console.log(stat);
+
+            displayList(stat["stat_name"], stat["data"], stat["row"]);
         }
 
         smoothCount(document.querySelector('#users #stat_number'), data["unique_chatters"]);
@@ -176,16 +141,37 @@ async function displayChatStats(streamer_name, json) {
 }
 
 function getIcon(name) {
-    const lowercase = name.toLowerCase();
-    if (lowercase.includes("7tv")) {
-        return lowercase.includes("global") ? "smile_mint" : "smile_blue";
+    try {
+        const lowercase = name.toLowerCase();
+
+        switch (true) {
+            case lowercase.includes("message count offline"):
+                return { icon: "message_circle", color: "#9CA3AF" }; // gray
+            case lowercase.includes("message count online"):
+                return { icon: "message_circle", color: "#22C55E" }; // green
+            case lowercase.includes("overall messages"):
+            case lowercase.includes("top linkers"):
+                return { icon: "trending_up", color: "#8B5CF6" }; // purple
+            case lowercase.includes("top emoters"):
+                return { icon: "smile", color: "#EAB308" }; // yellow
+            case lowercase.includes("7tv"):
+                return { icon: "smile", color: "#3B82F6" }; // blue
+            case lowercase.includes("bttv"):
+                return { icon: "smile", color: "#F97316" }; // orange
+            case lowercase.includes("ffz"):
+                return { icon: "smile", color: "#EC4899" }; // pink
+            default:
+                return null;
+        }
+    } catch (err) {
+        console.error(`Error in getIconAndColor with name: "${name}"`, err);
+        return null;
     }
-    if (lowercase.includes("bttv")) return "smile_orange";
-    if (lowercase.includes("ffz")) return "smile_pink";
-    return null;
 }
 
-async function displayList(stat, stat_key, row, icon) {
+async function displayList(name, data, row) {
+    if (!data.length || !name) { return; };
+
     const stat_row = document.createElement("div");
     stat_row.className = "stat_info";
 
@@ -198,27 +184,17 @@ async function displayList(stat, stat_key, row, icon) {
     const stat_icon = document.createElement("img");
     stat_icon.className = "stat_icon";
 
-    if (!icon && stat?.icon) {
-        icon = stat.icon;
-    }
+    const icon = getIcon(name);
 
     if (icon) {
-        stat_icon.src = `imgs/${icon}.svg`;
+        stat_icon.src = `imgs/${icon.icon}.svg`;
+        stat_icon.className = "stat_icon";
+        stat_icon.style.backgroundColor = icon.color;
         stat_icon.alt = icon;
     }
 
     const stat_data = document.createElement("ul");
     stat_data.className = "stat_data";
-
-    if (!row && stat?.row >= 0) {
-        row = stat.row;
-    }
-
-    if (!(row >= 0)) {
-        return;
-    }
-
-    if (!stat) { return; };
 
     let row_element = document.getElementById(`row_${row}`);
 
@@ -230,28 +206,13 @@ async function displayList(stat, stat_key, row, icon) {
         json_data.appendChild(row_element);
     }
 
-    const isCountBased = typeof Object.values(stat)[0] === 'object' && 'count' in Object.values(stat)[0];
+    stat_name.textContent = name
+        .replace(/_/g, " ")
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
 
-    if (!isCountBased) {
-        stat_name.textContent = stat.name
-            .replace(/_/g, " ")
-            .split(" ")
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
-    } else {
-        stat_name.textContent = stat_key;
-    }
-
-    const sortedKeys = Object.keys(isCountBased ? stat : stat.data).sort((a, b) => {
-        const getVal = key => {
-            const val = isCountBased ? stat[key] : stat.data[key];
-            return typeof val === 'object' && 'count' in val ? val.count : val;
-        };
-
-        return getVal(b) - getVal(a);
-    });
-
-    sortedKeys.forEach((stat_key, i) => {
+    data.forEach((stat_key, i) => {
         const row_data = document.createElement("li");
 
         const leftSpan = document.createElement('span');
@@ -262,15 +223,15 @@ async function displayList(stat, stat_key, row, icon) {
         numberSpan.textContent = `${i + 1}`;
 
         let img;
-        if (isCountBased && stat[stat_key].url) {
+        if (stat_key?.url) {
             img = document.createElement('img');
-            img.src = stat[stat_key].url;
+            img.src = stat_key.url;
             img.loading = "lazy";
         }
 
         const nameSpan = document.createElement('span');
-        let val = isCountBased ? stat[stat_key].count : stat.data[stat_key];
-        nameSpan.textContent = stat?.[stat_key]?.name ? stat[stat_key].name : stat_key;
+        let val = stat_key.count;
+        nameSpan.textContent = stat_key.name;
         nameSpan.className = "item_name";
 
         if (typeof val === 'number') {
