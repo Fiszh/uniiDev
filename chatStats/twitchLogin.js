@@ -43,7 +43,7 @@ async function handleToken() {
                 console.log('User Data:', userData);
 
                 setCookie("user_login", userData["login"], userData["expires_in"]);
-                
+
                 const return_url = getCookie("return_url");
                 deleteCookie("return_url");
 
@@ -62,7 +62,7 @@ async function handleToken() {
 
 handleToken();
 
-const has_cookie = getCookie("user_login");
+let has_cookie = getCookie("user_login");
 
 if (authButton) {
     const found_text = authButton.querySelector("#button_text");
@@ -83,6 +83,8 @@ if (authButton) {
             if (found_text) {
                 found_text.textContent = "Login";
             }
+
+            has_cookie = false;
         } else {
             alert("Do not show on stream.");
             setCookie("return_url", encodeURIComponent(window.location.href), 86400);
