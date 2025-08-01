@@ -84,6 +84,7 @@ if (authButton) {
                 found_text.textContent = "Login";
             }
         } else {
+            alert("Do not show on stream.");
             setCookie("return_url", window.location.href, 86400);
             const authUrl = `${AUTH_URL}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=${encodeURIComponent(SCOPES)}`;
             window.location = authUrl;
