@@ -43,11 +43,11 @@ async function handleToken() {
                 console.log('User Data:', userData);
 
                 setCookie("user_login", userData["login"], userData["expires_in"]);
-
+                
                 const return_url = getCookie("return_url");
                 deleteCookie("return_url");
 
-                window.location.href = return_url || REDIRECT_URI;
+                window.location.href = return_url ? decodeURIComponent(return_url) : REDIRECT_URI;
             } else {
                 alert('Failed to fetch user data');
                 throw new Error('Failed to fetch user data');
@@ -85,7 +85,7 @@ if (authButton) {
             }
         } else {
             alert("Do not show on stream.");
-            setCookie("return_url", window.location.href, 86400);
+            setCookie("return_url", encodeURIComponent(window.location.href), 86400);
             const authUrl = `${AUTH_URL}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=${encodeURIComponent(SCOPES)}`;
             window.location = authUrl;
         }
