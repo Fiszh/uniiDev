@@ -1,5 +1,4 @@
 body {
-    background-color: rgb(20, 20, 23);
     color: white;
     margin: 0;
     height: 100dvh;
@@ -10,6 +9,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background: linear-gradient(to bottom, #111316, #0b0c0e);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 * {
@@ -35,6 +37,22 @@ topbar img {
     height: 50px;
 }
 
+#login_button,
+.home_button {
+    border: 1px #333 solid;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    background-color: #2424245b;
+    border-radius: 10px;
+}
+
+#login_button:hover,
+.home_button:hover {
+    border: 1px white solid;
+    background-color: #24242481;
+    border-radius: 7px;
+}
+
 #streamers_buttons {
     display: flex;
     justify-content: center;
@@ -42,24 +60,51 @@ topbar img {
     align-items: center;
     flex-direction: column;
     width: 100%;
+    height: 100%;
     box-sizing: border-box;
     padding: 25px;
     gap: 15px;
+    justify-content: flex-start;
 }
 
-button {
+#streamers_buttons button {
+    padding: 10px 20px;
     box-sizing: border-box;
-    padding: 2px 15px;
-    border: 1px white solid;
-    color: white;
-    background-color: #1f1f1f;
     font-size: 2rem;
-    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.288);
+    border-radius: 15px;
+    border: 1px #333 solid;
+    font-weight: bold;
+    color: white;
 }
 
-button:hover {
-    padding: 5px 20px;
-    font-size: 2.2rem;
+#streamers_buttons button:hover {
+    padding: 10px 30px;
+    background-color: rgba(255, 255, 255, 0.123);
+    border-radius: 10px;
+    border: 1px white solid;
+}
+
+#user_data {
+    display: flex;
+    border: 1px #333 solid;
+    padding: 3px 15px;
+    box-sizing: border-box;
+    flex-direction: column;
+    gap: 0px;
+    border-radius: 15px;
+    font-weight: bold;
+    background: linear-gradient(to bottom, #111316, #0b0c0e);
+}
+
+#user_data #stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#user_data:hover {
+    border: 1px white solid;
 }
 
 ul,
@@ -71,8 +116,35 @@ ol {
 li {
     list-style-type: none;
     display: flex;
-    gap: 5px;
     justify-content: space-between;
+    background-color: #2b2f38;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    border: 1px #303030 solid;
+    background: linear-gradient(to bottom right, #2b2f38, #17191d);
+}
+
+li:hover {
+    border: 1px white solid;
+}
+
+.stat_data li:nth-child(1) {
+    background: linear-gradient(to bottom right, #facc15, #ca8a04);
+    box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
+    color: white;
+}
+
+.stat_data li:nth-child(2) {
+    background: linear-gradient(to bottom right, #d1d5db, #6b7280);
+    box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
+    color: white;
+}
+
+.stat_data li:nth-child(3) {
+    background: linear-gradient(to bottom right, #f59e0b, #b45309);
+    box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
+    color: white;
 }
 
 li img {
@@ -83,11 +155,11 @@ span.position {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    background-color: #2b2f38;
     color: white;
     width: 2rem;
     aspect-ratio: 1 / 1;
-    border-radius: 10px;
+    flex-shrink: 0;
+    margin-right: 0.5rem;
 }
 
 span {
@@ -114,15 +186,15 @@ span {
     width: 100%;
     border: 1px #333 solid;
     border-radius: 15px;
-    background-color: #16171d;
+    background: linear-gradient(to bottom right, #2b2f38, #0b0c0e);
 }
 
 .stat_info:hover {
     border: 1px white solid;
 }
 
-.stat_info:hover .stat_data {
-    border-top: 1px white solid;
+.stat_info:hover .stat_header {
+    border-bottom: 1px white solid;
 }
 
 .stat_data {
@@ -130,12 +202,10 @@ span {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    border-top: 1px #333 solid;
     padding: 0px 15px;
     height: 100%;
     gap: 5px;
     box-sizing: border-box;
-    padding-top: 5px;
 }
 
 .stat_data::-webkit-scrollbar {
@@ -190,7 +260,13 @@ span {
     width: 100%;
     gap: 10px;
     align-items: center;
-    padding: 10px 10px 0px 15px;
+    padding: 10px 10px 10px 15px;
+    box-sizing: border-box;
+}
+
+.stat_icon {
+    background-color: #ffffff2f;
+    border: 1px #ffffff44 solid;
 }
 
 .stat_name {
@@ -200,27 +276,6 @@ span {
 li span {
     gap: 5px;
     display: flex;
-}
-
-.stat_data li:nth-child(1) .position {
-    background: linear-gradient(to bottom right, #facc15, #ca8a04);
-    box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
-    background-color: #c3b465;
-    color: #333;
-}
-
-.stat_data li:nth-child(2) .position {
-    background: linear-gradient(to bottom right, #d1d5db, #6b7280);
-    box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
-    background-color: #bfbfbf;
-    color: #444;
-}
-
-.stat_data li:nth-child(3) .position {
-    background: linear-gradient(to bottom right, #f59e0b, #b45309);
-    box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
-    background-color: #a57a53;
-    color: #333;
 }
 
 span.value {

@@ -26,42 +26,57 @@
             UNI - CHAT STATS
             <div style="font-size: small;">uniiDev chat stats viewer</div>
         </div>
-        <div class="home_button" style="margin-left:auto;">
-            <a href="/chatStats/" style="text-decoration:none; color:inherit; pointer-events:all;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+        <div style="margin-left:auto; display: flex; gap: 25px; align-items: center;">
+            <div class="home_button">
+                <a href="/chatStats/" style="text-decoration:none; color:inherit; pointer-events:all;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-home ">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Home
+                </a>
+            </div>
+            <div id="login_button" style="pointer-events:all; cursor: pointer; display: flex; align-items: center; gap: 7px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="lucide lucide-home ">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    class="lucide lucide-twitch-icon lucide-twitch">
+                    <path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7" />
                 </svg>
-                Home
-            </a>
+                <div id="button_text">Login</div>
+            </div>
         </div>
     </topbar>
 
     <section id="streamers_buttons"></section>
     <section id="json_data">
+        <section id="user_data" class="stat_row" style="display: none;">
+            <p id="username">username's stats</p>
+            <div id="stats">
+            </div>
+        </section>
         <section id="row_additional" class="stat_row">
-            <div id="users">
-                <img class="stat_icon" src="imgs/users.svg" alt="users" style="background-color: #9146FF;">
+            <div id="users" style="background: linear-gradient(to bottom, #7c3aed, #a78bfa);">
+                <img class="stat_icon" src="imgs/users.svg" alt="users">
                 <div id="stat_number">0</div>
                 <div id="stat_name">Total Active Users</div>
             </div>
-            <div id="messages">
-                <img class="stat_icon" src="imgs/message_circle.svg" alt="message_circle"
-                    style="background-color: #38c09e;">
+            <div id="messages" style="background: linear-gradient(to bottom, #22c59e, #38c09e);">
+                <img class="stat_icon" src="imgs/message_circle.svg" alt="message_circle">
                 <div id="stat_number">0</div>
                 <div id="stat_name">Total Messages</div>
             </div>
-            <div id="average_messages">
-                <img class="stat_icon" src="imgs/trending_up.svg" alt="trending_up" style="background-color: #F97316;">
+            <div id="average_messages" style="background: linear-gradient(to bottom, #fb923c, #f97316);">
+                <img class="stat_icon" src="imgs/trending_up.svg" alt="trending_up">
                 <div id="stat_number">0</div>
                 <div id="stat_name">Avg. Messages/User</div>
             </div>
         </section>
     </section>
 
-    <script src="index.js"></script>
+    <script src="twitchLogin.js" defer></script>
+    <script src="index.js" defer></script>
 </body>
 
 </html>

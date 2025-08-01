@@ -1,6 +1,17 @@
 const streamers_buttons = document.getElementById("streamers_buttons");
 const json_data = document.getElementById("json_data");
 
+const user_data = document.getElementById("user_data");
+const username = user_data.querySelector("#username");
+const user_row = user_data.querySelector("#stats");
+
+const user_login = getCookie("user_login");
+
+if (user_login) {
+    username.textContent = `${user_login}'s stats`;
+    user_data.style.display = "flex";
+}
+
 function setQueryParam(key, value) {
     const params = new URLSearchParams(window.location.search);
     params.set(key, value);
@@ -146,20 +157,20 @@ function getIcon(name) {
 
         switch (true) {
             case lowercase.includes("message count offline"):
-                return { icon: "message_circle", color: "#9CA3AF" }; // gray
+                return { icon: "message_circle", gradient: "linear-gradient(to bottom, #cbd5e1, #6b7280)" }; // gray gradient
             case lowercase.includes("message count online"):
-                return { icon: "message_circle", color: "#22C55E" }; // green
+                return { icon: "message_circle", gradient: "linear-gradient(to bottom, #4ade80, #16a34a)" }; // green gradient
             case lowercase.includes("overall messages"):
             case lowercase.includes("top linkers"):
-                return { icon: "trending_up", color: "#8B5CF6" }; // purple
+                return { icon: "trending_up", gradient: "linear-gradient(to bottom, #a78bfa, #7c3aed)" }; // purple gradient
             case lowercase.includes("top emoters"):
-                return { icon: "smile", color: "#EAB308" }; // yellow
+                return { icon: "smile", gradient: "linear-gradient(to bottom, #fde047, #ca8a04)" }; // yellow gradient
             case lowercase.includes("7tv"):
-                return { icon: "smile", color: "#3B82F6" }; // blue
+                return { icon: "smile", gradient: "linear-gradient(to bottom, #60a5fa, #2563eb)" }; // blue gradient
             case lowercase.includes("bttv"):
-                return { icon: "smile", color: "#F97316" }; // orange
+                return { icon: "smile", gradient: "linear-gradient(to bottom, #fb923c, #c2410c)" }; // orange gradient
             case lowercase.includes("ffz"):
-                return { icon: "smile", color: "#EC4899" }; // pink
+                return { icon: "smile", gradient: "linear-gradient(to bottom, #f472b6, #be185d)" }; // pink gradient
             default:
                 return null;
         }
@@ -189,7 +200,7 @@ async function displayList(name, data, row) {
     if (icon) {
         stat_icon.src = `imgs/${icon.icon}.svg`;
         stat_icon.className = "stat_icon";
-        stat_icon.style.backgroundColor = icon.color;
+        stat_header.style.background = icon.gradient;
         stat_icon.alt = icon;
     }
 
@@ -220,7 +231,7 @@ async function displayList(name, data, row) {
 
         const numberSpan = document.createElement('span');
         numberSpan.className = "position";
-        numberSpan.textContent = `${i + 1}`;
+        numberSpan.textContent = `#${i + 1}`;
 
         let img;
         if (stat_key?.url) {
@@ -233,6 +244,13 @@ async function displayList(name, data, row) {
         let val = stat_key.count;
         nameSpan.textContent = stat_key.name;
         nameSpan.className = "item_name";
+
+        if (user_login && stat_key.name == user_login) {
+            const p = document.createElement("p");
+            p.textContent = `${name}: ${stat_key.count}`;
+
+            user_row.appendChild(p);
+        }
 
         if (typeof val === 'number') {
             val = val.toLocaleString();
