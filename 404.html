@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,26 +10,72 @@
     <link rel="stylesheet" type="text/css" href="/styles/styles.css">
     <style>
         body {
+            margin: 0;
+            height: 100dvh;
+            width: 100dvw;
             font-family: Arial, sans-serif;
-            text-align: center;
             overflow: hidden;
+            font-size: 1.5rem;
+            display: flex;
+            flex-direction: row;
             padding: 50px;
-            font-size: 40px;
-        }
-        h1 {
-            font-size: 50px;
-            color: red;
+            box-sizing: border-box;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(45deg, #080808, #0d0d10);
         }
 
-        a {
-            color: white;
-            font-size: 35px;
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        p {
+            width: 40dvw;
+        }
+
+        #buttons {
+            display: flex;
+            gap: 25px;
+        }
+
+        #buttons>* {
+            all: unset;
+            transition: all 0.3s;
+            padding: 0.75rem 2rem;
+            background: rgba(255 255 255 / 0.1);
+            border: 1px solid #555;
+            border-radius: 12px;
+            color: #eee;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        #buttons>*:hover {
+            background-color: rgba(255, 255, 255, 0.068);
+            border-radius: 10px;
+            border: 1px white solid;
+        }
+
+        img {
+            aspect-ratio: 1 / 1;
+            height: 20dvw;
+            border-radius: 10px;
         }
     </style>
 </head>
+
 <body>
-    <h1>404 - Page Not Found</h1>
-    <p>Sorry, the page you're looking for doesn't exist.</p>
-    <p><a href="/">Go back to homepage</a></p>
+    <div>
+        <h1>Oops, page not found</h1>
+        <p>Looks like the page you're trying to reach doesn't exist or was moved. Check the URL or try one of the
+            options below.</p>
+        <div id="buttons">
+            <button onclick="history.back()">Go back a page</button>
+            <a href="/">Go back homepage</a>
+        </div>
+    </div>
+    <img src="https://cdn.unii.dev/404.avif" alt="404">
 </body>
+
 </html>
