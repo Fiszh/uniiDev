@@ -1,17 +1,38 @@
-<script lang="ts">
-    export let stat: {
+<script lang="ts" module>
+    import type { Snippet } from "svelte";
+
+    export type Stat = {
         name: string;
         icon?: string;
+        search?: boolean;
+        children?: Snippet;
+        searchValue?: string;
     };
+</script>
+
+<script lang="ts">
+    let {
+        name,
+        icon = "",
+        search = true,
+        children,
+        searchValue = $bindable(""),
+    }: Stat = $props();
 </script>
 
 <div class="stat">
     <p id="stat_name">
-        {#if stat.icon}<img src={stat.icon} alt="icon" />{/if}
-        {stat.name}
+        <span>
+            {#if icon}<img src={icon} alt="icon" />{/if}
+            {name}
+        </span>
+
+        {#if typeof search == "undefined" ? true : search}
+            <input placeholder="Search..." bind:value={searchValue}/>
+        {/if}
     </p>
     <li>
-        <slot />
+        {@render children?.()}
     </li>
 </div>
 
@@ -23,9 +44,10 @@
         display: flex;
         flex-direction: column;
         background: linear-gradient(to bottom, #111316, #0b0c0e);
-        width: 100%;
         overflow: hidden;
         font-weight: bold;
+        min-width: max-content;
+        flex: auto;
 
         & > * {
             padding-inline: 1rem;
@@ -58,6 +80,19 @@
         border-bottom: 1px #333 solid;
         padding-block: 0.5rem;
         background: linear-gradient(to right, #1a1a1a, #3d3d3d00);
+        justify-content: space-between;
+
+        span {
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            all: unset;
+            background-color: rgba(0, 0, 0, 0.25);
+            padding: 0rem 0.5rem;
+            border-radius: 0.5rem;
+        }
 
         img {
             max-height: 2rem;

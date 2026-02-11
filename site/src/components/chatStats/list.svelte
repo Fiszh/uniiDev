@@ -1,19 +1,47 @@
 <script lang="ts">
-    import Wrapper from "./wrapper.svelte";
+    import Wrapper, { type Stat } from "./wrapper.svelte";
 
-    export let list: {
-        icon?: string;
-        name: string;
+    interface ListStat extends Stat {
         data: Record<string, any>[];
         tracking_start?: string;
-    };
+    }
+
+    let searchQuery = $state("");
+
+    let { data, tracking_start = "", ...restData }: ListStat = $props();
+
+    interface listDataIndexed extends listData {
+        index: number;
+    }
+
+    function searchFilter(listData: ListStat["data"], query: string) {
+        if (!query.length) return listData;
+
+        const exactMatch = /".+?"/g.test(query);
+
+        return data
+            .map((item, index) => {
+                const isQuery = exactMatch
+                    ? String(item.name || "") == query.replace(/"/g, "")
+                    : String(item.name || "")
+                          .toLowerCase()
+                          .includes(query.toLowerCase());
+
+                return isQuery ? { ...item, index: index + 1 } : null;
+            })
+            .filter(Boolean);
+    }
+
+    let filtered = $derived(
+        searchFilter(data, searchQuery),
+    ) as listDataIndexed[];
 </script>
 
-{#if list.data && list.data.length}
-    <Wrapper stat={{ icon: list.icon, name: list.name }}>
-        {#each list.data as stat, i}
-            <ol>
-                <p>{i + 1}.</p>
+{#if data && data.length}
+    <Wrapper {...restData} bind:searchValue={searchQuery}>
+        {#each filtered as stat, i}
+            <ol data-index={stat.index || i + 1}>
+                <p>{stat.index || i + 1}.</p>
                 {#if stat["url"]}
                     <img src={stat["url"]} alt="icon" loading="lazy" />
                 {/if}
@@ -22,10 +50,10 @@
             </ol>
         {/each}
 
-        {#if list.tracking_start}
+        {#if tracking_start}
             <div id="tracking_start">
                 <p>Started tracking:</p>
-                <p>{list.tracking_start}</p>
+                <p>{tracking_start}</p>
             </div>
         {/if}
     </Wrapper>
@@ -36,6 +64,7 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
+        width: 100%;
 
         img {
             max-height: 1.5rem;
@@ -47,23 +76,23 @@
         border-radius: 0.25rem;
 
         background: linear-gradient(to bottom right, #1a1d22, #0f1013);
+    }
 
-        &:nth-child(1) {
-            background: linear-gradient(to bottom right, #facc15, #ca8a04);
-            box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
-            color: white;
-        }
+    ol[data-index="1"] {
+        background: linear-gradient(to bottom right, #facc15, #ca8a04);
+        box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
+        color: white;
+    }
 
-        &:nth-child(2) {
-            background: linear-gradient(to bottom right, #d1d5db, #6b7280);
-            box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
-            color: white;
-        }
+    ol[data-index="2"] {
+        background: linear-gradient(to bottom right, #d1d5db, #6b7280);
+        box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
+        color: white;
+    }
 
-        &:nth-child(3) {
-            background: linear-gradient(to bottom right, #f59e0b, #b45309);
-            box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
-            color: white;
-        }
+    ol[data-index="3"] {
+        background: linear-gradient(to bottom right, #f59e0b, #b45309);
+        box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
+        color: white;
     }
 </style>

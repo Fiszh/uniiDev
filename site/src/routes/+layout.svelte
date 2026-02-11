@@ -7,12 +7,28 @@
 	import GitHubIcon from "$lib/assets/GitHub_Invertocat_White.svg";
 	import LoginButton from "../components/LoginButton.svelte";
 
+	import { validateToken } from "$lib/twitch";
+
+	import { dev } from "$app/environment";
+	import { delCookie, setCookie } from "$lib/cookie";
+
+	let user_login: string | undefined;
+
 	async function handleToken(token: string) {
-		console.log(token);
+		const validated = await validateToken(token);
+
+		if (validated) {
+			setCookie("login", validated.login, 1);
+
+			user_login = validated.login;
+		}
 	}
 
 	function logOut() {
 		console.log("log out");
+
+		delCookie("login");
+		user_login = undefined;
 	}
 
 	let { children } = $props();
@@ -31,6 +47,10 @@
 	description="Self-taught coder working with TypeScript, Bun, and open-source Twitch tools."
 	canonical="https://unii.dev/"
 />
+
+{#if dev}
+	<p id="dev-version">DEV VERSION</p>
+{/if}
 
 {#if !$disable_root}
 	<a href="https://github.com/Fiszh" id="GitHub">
@@ -97,8 +117,8 @@
 		#GitHub {
 			position: fixed;
 
-			bottom: 1rem;
-			right: 1rem;
+			bottom: 1.25rem;
+			right: 1.25rem;
 
 			img {
 				max-height: 2rem;
@@ -108,3 +128,15 @@
 		}
 	</style>
 {/if}
+
+<style lang="scss">
+	#dev-version {
+		position: absolute;
+		bottom: 1rem;
+		left: 1rem;
+		background-color: rgba(0, 0, 0, 0.85);
+		border-radius: 25rem;
+		padding: 0.25rem 1rem;
+		font-weight: bold;
+	}
+</style>

@@ -1,12 +1,14 @@
 <script lang="ts">
-    import Wrapper from "./wrapper.svelte";
+    import Wrapper, { type Stat } from "./wrapper.svelte";
 
-    export let stat: {
-        name: string;
-        data: number | string;
-    };
+    interface numberStat extends Stat {
+        data: number;
+    }
+
+    export let stat: numberStat;
 </script>
 
-<Wrapper stat={{ name: stat.name }}>
+<!-- number stats have nothing to search -->
+<Wrapper {...stat} search={false}>
     {stat.data.toLocaleString()}
 </Wrapper>

@@ -61,7 +61,7 @@
         Logout
     {:else}
         <img src={TwitchIcon} alt="Twitch" />
-        Login
+        Twitch Login
     {/if}</button
 >
 

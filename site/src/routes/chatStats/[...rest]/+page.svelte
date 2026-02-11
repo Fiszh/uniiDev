@@ -8,12 +8,13 @@
     import { setGap } from "$lib/styling.js";
     import { fade } from "svelte/transition";
     import NumberStat from "../../../components/chatStats/number_stat.svelte";
+    import { onMount } from "svelte";
+    import { getCookie } from "$lib/cookie.js";
+    import Wrapper from "../../../components/chatStats/wrapper.svelte";
 
     site_title.set("Chat Stats");
 
     TopBar.update((data) => {
-        return data; // DISABLE RN
-
         data = {
             ...data,
             login: true,
@@ -48,6 +49,8 @@
     function isListStatData(stat: chatStatsData): stat is listStatData {
         return typeof stat === "object" && stat !== null && "row" in stat;
     }
+
+    let user_login = $state<string | null>("");
 
     $effect(() => {
         const { channel, json } = getDerivedParams();
@@ -112,8 +115,49 @@
 
                 buttonsType = "stats";
                 setGap("0rem");
+
+                if (user_login) statsForUser = getUserStats();
             }
         })();
+    });
+
+    type UserStat = {
+        name: string;
+        data: number;
+    };
+
+    let statsForUser = $state<UserStat[]>([]);
+
+    function onCookieChange() {
+        console.log("cookie changed");
+
+        user_login = getCookie("login");
+
+        statsForUser = getUserStats();
+    }
+
+    function getUserStats() {
+        if (!rowData?.list || !user_login) return [] as UserStat[];
+
+        const login = user_login.toLowerCase();
+
+        return Object.values(rowData.list)
+            .flatMap((lists) => lists)
+            .flatMap((list) => {
+                const match = list.data.find(
+                    (d) => String(d.name ?? "").toLowerCase() === login,
+                );
+
+                return match
+                    ? [{ name: list.stat_name, data: match.count }]
+                    : [];
+            }) as UserStat[];
+    }
+
+    onMount(() => {
+        user_login = getCookie("login");
+
+        window.addEventListener("cookiechange", onCookieChange);
     });
 </script>
 
@@ -151,6 +195,15 @@
         />
     {/each}
 {:else if buttonsType == "stats"}
+    {#if user_login}
+        <p>{user_login + "'s stats"}</p>
+        <section id="row">
+            {#each statsForUser as stat}
+                <NumberStat {stat} />
+            {/each}
+        </section>
+    {/if}
+
     <section id="row">
         {#each Object.entries(rowData["number"]) as [key, value]}
             <NumberStat stat={{ name: key, data: value }} />
@@ -161,10 +214,8 @@
         <section id="row">
             {#each lists as list}
                 <List
-                    list={{
-                        name: list.stat_name,
-                        data: list.data.sort((a, b) => b.count - a.count),
-                    }}
+                    name={list.stat_name}
+                    data={list.data.sort((a, b) => b.count - a.count)}
                 />
             {/each}
         </section>
@@ -186,16 +237,14 @@
     }
 
     #segments {
-        position: fixed;
-        top: 0.5rem;
         font-size: 1.5rem;
         font-weight: bold;
-        gap: 0.1rem;
         display: inline-flex;
     }
 
     #row {
         display: flex;
+        flex-wrap: wrap;
         justify-content: center;
 
         gap: 2.5rem;

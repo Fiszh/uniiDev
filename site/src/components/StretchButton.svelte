@@ -46,6 +46,8 @@
 
         font-weight: bold;
 
+        text-align: center;
+
         &:hover {
             padding: 0.5rem 1.8rem;
             border-radius: 0.5rem;
