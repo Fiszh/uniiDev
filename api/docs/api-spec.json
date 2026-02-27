@@ -1,0 +1,126 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "uniiDev API",
+    "version": "0.0.2-alpha",
+    "description": "uniiDev API  documentantion"
+  },
+  "paths": {
+    "/badges": {
+      "get": {
+        "summary": "Get badges",
+        "description": "Returns a grouped list of badges by category (e.g., UChat, YAUTC).",
+        "responses": {
+          "200": {
+            "description": "A grouped list of badges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "UChat": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Badge" }
+                    },
+                    "YAUTC": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Badge" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/twitch/{userid}": {
+      "get": {
+        "summary": "Get Twitch user URL",
+        "description": "Redirects to the Twitch profile of the given user ID.<br><br><b>Note:</b> This will error in docs due to Twitch CORS.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userid",
+            "required": true,
+            "description": "The Twitch user ID",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "301": { "description": "Redirects to the Twitch user profile" },
+          "404": {
+            "description": "User not found or Twitch username does not exist"
+          },
+          "500": { "description": "Error with the GraphQL request" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Badge": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "imgs": {
+            "type": "object",
+            "properties": {
+              "static": {
+                "type": "object",
+                "properties": {
+                  "4x": {
+                    "type": "string",
+                    "description": "URL for 4x resolution image"
+                  },
+                  "2x": {
+                    "type": "string",
+                    "description": "URL for 2x resolution image"
+                  },
+                  "3x": {
+                    "type": "string",
+                    "description": "URL for 3x resolution image"
+                  },
+                  "1x": {
+                    "type": "string",
+                    "description": "URL for 1x resolution image"
+                  }
+                }
+              },
+              "animated": {
+                "type": "object",
+                "properties": {
+                  "4x": {
+                    "type": "string",
+                    "description": "URL for animated 4x resolution image"
+                  },
+                  "2x": {
+                    "type": "string",
+                    "description": "URL for animated 2x resolution image"
+                  },
+                  "3x": {
+                    "type": "string",
+                    "description": "URL for animated 3x resolution image"
+                  },
+                  "1x": {
+                    "type": "string",
+                    "description": "URL for animated 1x resolution image"
+                  }
+                }
+              }
+            }
+          },
+          "title": { "type": "string" },
+          "type": { "type": "string" },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "User ID associated with the badge"
+            }
+          }
+        }
+      }
+    }
+  }
+}

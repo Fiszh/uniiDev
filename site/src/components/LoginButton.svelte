@@ -70,29 +70,44 @@
 
     button {
         $background: #141414;
+        $accent: #ffffff1b;
 
         all: unset;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.3rem;
-        padding: 0.6rem 0.7rem;
+        gap: 0.35rem;
+
+        padding: 0.55rem 0.9rem;
         box-sizing: border-box;
-        background-color: $background;
-        transition: all 0.3s ease-in-out;
-        border-radius: 0.5rem;
+
+        background: $background;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.6rem;
+
+        font-weight: 600;
+
+        transition: all 0.05s ease;
+
+        &:hover {
+            border-color: $accent;
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 6px 18px rgba(255, 255, 255, 0.005),
+                0 0 12px $accent;
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
 
         img {
             height: 2rem;
             width: auto;
             aspect-ratio: 1/1;
-        }
-
-        &:hover {
-            background-color: color.adjust($background, $lightness: 5%);
-            gap: 0.4rem;
-            outline: 1px solid white;
         }
     }
 </style>

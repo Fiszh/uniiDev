@@ -55,6 +55,9 @@
     $effect(() => {
         const { channel, json } = getDerivedParams();
 
+        rowData["number"] = {};
+        rowData["list"] = {};
+
         console.log(channel, json);
 
         (async () => {

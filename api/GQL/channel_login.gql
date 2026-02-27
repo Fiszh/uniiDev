@@ -1,0 +1,83 @@
+query Combined($login: String!) {
+  channel_info: user(login: $login) {
+    id
+    login
+    displayName
+    chatColor
+  }
+  channel_badges: user(login: $login) {
+    id
+    primaryColorHex
+    broadcastBadges {
+      ...badge
+    }
+  }
+  channel_cheer_emotes: user(login: $login) {
+    cheer {
+      id
+      cheerGroups {
+        templateURL
+        nodes {
+          id
+          prefix
+          type
+          tiers {
+            id
+            bits
+          }
+        }
+      }
+    }
+  }
+  global_badges: badges {
+    ...badge
+  }
+  global_cheer_emotes: cheerConfig {
+    displayConfig {
+      backgrounds
+      colors {
+        bits
+        color
+      }
+    }
+    groups {
+      templateURL
+      nodes {
+        id
+        prefix
+        type
+        campaign {
+          id
+          brandImageURL
+          brandName
+          thresholds {
+            id
+            minimumBits
+            matchedPercent
+          }
+          minimumBitsAmount
+          bitsTotal
+          bitsUsed
+          bitsPercentageRemaining
+          userLimit
+        }
+        tiers {
+          id
+          bits
+          canShowInBitsCard
+        }
+      }
+    }
+  }
+}
+fragment badge on Badge {
+  id
+  setID
+  version
+  title
+  image1x: imageURL(size: NORMAL)
+  image2x: imageURL(size: DOUBLE)
+  image4x: imageURL(size: QUADRUPLE)
+  clickAction
+  clickURL
+}

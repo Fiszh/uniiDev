@@ -28,7 +28,7 @@
         </span>
 
         {#if typeof search == "undefined" ? true : search}
-            <input placeholder="Search..." bind:value={searchValue}/>
+            <input placeholder="Search..." bind:value={searchValue} />
         {/if}
     </p>
     <li>
@@ -46,8 +46,10 @@
         background: linear-gradient(to bottom, #111316, #0b0c0e);
         overflow: hidden;
         font-weight: bold;
-        min-width: max-content;
+        width: max-content;
         flex: auto;
+
+        max-width: 100%;
 
         & > * {
             padding-inline: 1rem;
@@ -61,6 +63,8 @@
             max-height: 20rem;
             overflow-x: hidden;
             overflow-y: auto;
+
+            text-overflow: ellipsis;
         }
 
         *::-webkit-scrollbar {
