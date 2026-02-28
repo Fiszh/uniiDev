@@ -3,7 +3,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 
-export let Queries = {
+export const Queries = {
   url: "https://gql.twitch.tv/gql",
   headers: {
     "Client-ID": "ue6666qo983tsx6so1t0vnawi233wa",
@@ -26,12 +26,14 @@ export function getQuery(query_name: string): string | false {
 }
 
 export async function sendGQLRequest(GQLbody: Record<string, any>) {
-  if (!Queries.headers["Client-Version"])
+  if (!process.env.CLIENT_VERSION)
     return {
       error: true,
       code: 500,
       message: "Failed, no Client Version",
     };
+
+  Queries.headers["Client-Version"] = process.env.CLIENT_VERSION;
 
   try {
     const { data } = await axios.post("https://gql.twitch.tv/gql", GQLbody, {

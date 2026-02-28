@@ -19,7 +19,7 @@ export async function getTwitchGQLVersion() {
     if (response.status === 200) {
       const buildId =
         response.data?.channels?.[0]?.releases?.[0]?.buildId || null;
-      Queries.headers["Client-Version"] = buildId;
+      //Queries.headers["Client-Version"] = buildId;
 
       console.log("GQL Version:", buildId);
       const waitTime = getRandomInterval();
@@ -28,7 +28,10 @@ export async function getTwitchGQLVersion() {
 
       const webhookMessage = [
         {
-          name: "Fetched GQL Version",
+          name:
+            process.env.CLIENT_VERSION == buildId
+              ? "Fetched GQL Version"
+              : "Fetched new GQL Version",
           value: buildId,
         },
         {
@@ -36,6 +39,8 @@ export async function getTwitchGQLVersion() {
           value: `<t:${Math.floor((Date.now() + waitTime) / 1000)}>`,
         },
       ];
+
+      process.env.CLIENT_VERSION = buildId;
 
       if (process.env.API_LOGS)
         queueMessage(
