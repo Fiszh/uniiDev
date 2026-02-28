@@ -129,19 +129,18 @@ Bun.serve({
     } else if (!forwardedFor && serverIP) {
       req.headers.set("x-forwarded-for", serverIP.replace("::ffff:", ""));
     }
+
     const ip = req.headers.get("x-forwarded-for");
 
     const limiterResponse = await limiter.middleware()(req);
 
     const origin = req.headers.get("Origin");
-    7;
 
     if (limiterResponse) {
-      const ip = req.headers.get("x-forwarded-for");
       const alertMessage = `⚠️ Rate limit exceeded by IP: [${ip}](<https://ipinfo.io/${ip}>) on path: ${url.pathname}`;
 
       if (process.env.RATELIMIT_LOGS)
-        queueMessage(process.env.RATELIMIT_LOGS, alertMessage, 5000);
+        queueMessage(process.env.RATELIMIT_LOGS, alertMessage, 2000);
 
       return limiterResponse;
     }
@@ -151,14 +150,23 @@ Bun.serve({
 
       res = setSecurityHeaders(res) as Response;
 
+      // CORS
       if (
         origin &&
         !allowed_sites.includes(origin) &&
         url.pathname != "/badges"
-      )
+      ) {
+        if (process.env.CORS_LOGS)
+          queueMessage(
+            process.env.CORS_LOGS,
+            `path: ${url.pathname}\norigin: <${origin}>\nIP: [${ip}](<https://ipinfo.io/${ip}>)`,
+            2000,
+          );
+
         return new Response(null, {
           status: 403,
         });
+      }
 
       res.headers.set("Access-Control-Allow-Origin", origin || "*");
 
@@ -233,4 +241,4 @@ Bun.serve({
   },
 });
 
-//if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
+if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();

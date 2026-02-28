@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { Queries } from "$lib/GQL";
+import { queueMessage } from "$lib/discord";
 
 const getRandomInterval = (minMinutes = 40, maxMinutes = 60) =>
   Math.floor(Math.random() * (maxMinutes - minMinutes) * 60000) +
@@ -25,7 +26,27 @@ export async function getTwitchGQLVersion() {
 
       console.log(buildId);
 
-      //sendWebhookMessage(WEBHOOK_URL, `Fetched new GQL Version: ${buildId}\nNext fetch will happen: <t:${Math.floor((Date.now() + waitTime) / 1000)}>`, "embed", 0x00ff00);
+      const webhookMessage = [
+        {
+          name: "Fetched GQL Version",
+          value: buildId,
+        },
+        {
+          name: "Next fetch will happen",
+          value: `<t:${Math.floor((Date.now() + waitTime) / 1000)}>`,
+        },
+      ];
+
+      if (process.env.API_LOGS)
+        queueMessage(
+          process.env.API_LOGS,
+          {
+            content: webhookMessage
+              .flatMap((msg) => msg.name + ": " + msg.value)
+              .join("\n"),
+          },
+          5000,
+        );
 
       setTimeout(getTwitchGQLVersion, waitTime);
     } else {
@@ -37,7 +58,27 @@ export async function getTwitchGQLVersion() {
 
     const waitTime = getRandomInterval(2, 5);
 
-    //sendWebhookMessage(WEBHOOK_URL, failMsg + `\nNext fetch will happen: <t:${Math.floor((Date.now() + waitTime) / 1000)}>`, "embed", 0xff0000);
+    const webhookMessage = [
+      {
+        name: "Failed!",
+        value: failMsg,
+      },
+      {
+        name: "Next fetch will happen",
+        value: `<t:${Math.floor((Date.now() + waitTime) / 1000)}>`,
+      },
+    ];
+
+    if (process.env.API_LOGS)
+      queueMessage(
+        process.env.API_LOGS,
+        {
+          content: webhookMessage
+            .flatMap((msg) => msg.name + ": " + msg.value)
+            .join("\n"),
+        },
+        5000,
+      );
 
     setTimeout(getTwitchGQLVersion, waitTime);
   }

@@ -7,7 +7,7 @@ export let Queries = {
   url: "https://gql.twitch.tv/gql",
   headers: {
     "Client-ID": "ue6666qo983tsx6so1t0vnawi233wa",
-    "Client-Version": "0454d470-1fab-4caf-abcd-03c327da38ac",
+    "Client-Version": undefined,
     "X-Device-ID": process.env.DEVICE_ID,
     Referer: "https://twitch.tv/",
     "User-Agent":
