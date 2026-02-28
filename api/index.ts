@@ -243,4 +243,4 @@ Bun.serve({
   },
 });
 
-//if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
+if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
