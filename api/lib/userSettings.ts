@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-const data_path = path.join(process.cwd(), "data");
+const data_path = path.resolve(".", "data");
 if (!fs.existsSync(data_path))
-  fs.mkdirSync(path.join(data_path), { recursive: true });
+  fs.mkdirSync(path.resolve(data_path), { recursive: true });
 
-const file_path = path.join(data_path, "userSettings.json");
+const file_path = path.resolve(data_path, "userSettings.json");
 if (!fs.existsSync(file_path))
   fs.writeFileSync(file_path, JSON.stringify({}, null, 2), "utf8");
 

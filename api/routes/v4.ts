@@ -38,7 +38,7 @@ interface Err {
   message: string;
 }
 
-const chatStatsData_path = path.join(os.homedir(), "chatStatsData");
+const chatStatsData_path = path.resolve(os.homedir(), "chatStatsData");
 
 function parseDMY(dateStr: string): Date {
   const [dd, mm, yyyy]: number[] = dateStr.split("-").map(Number);
@@ -69,7 +69,7 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     if (!fs.existsSync(chatStatsData_path))
       throw { status: 401, message: "Chat stats data does not exists!" };
 
-    const channel_path = path.join(chatStatsData_path, channel);
+    const channel_path = path.resolve(chatStatsData_path, channel);
 
     if (!fs.existsSync(channel_path))
       throw { status: 401, message: `${channel} does not exist in the data!` };
@@ -101,7 +101,9 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     const read_data = files.flatMap<statsData>((json) => {
       return {
         json_name: json,
-        ...JSON.parse(fs.readFileSync(path.join(channel_path, json), "utf-8")),
+        ...JSON.parse(
+          fs.readFileSync(path.resolve(channel_path, json), "utf-8"),
+        ),
       };
     });
 
@@ -178,7 +180,7 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     merged_data["time_taken"] = end - start;
 
     fs.writeFileSync(
-      path.join(".", "merged.json"),
+      path.resolve(".", "merged.json"),
       JSON.stringify(merged_data),
       "utf-8",
     );

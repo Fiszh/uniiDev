@@ -19,7 +19,7 @@ if (process.env.DEVICE_ID)
   Queries.headers["X-Device-ID"] = process.env.DEVICE_ID;
 
 export function getQuery(query_name: string): string | false {
-  const queryPath = path.join(process.cwd(), "GQL", query_name + ".gql");
+  const queryPath = path.resolve(".", "GQL", query_name + ".gql");
   if (fs.existsSync(queryPath)) return fs.readFileSync(queryPath, "utf-8");
 
   return false;

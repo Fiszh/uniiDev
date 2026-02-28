@@ -2,6 +2,9 @@
   "name": "api",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun build index.ts --outdir ./build --target=bun --sourcemap"
+  },
   "private": true,
   "devDependencies": {
     "@types/bun": "^1.3.9"

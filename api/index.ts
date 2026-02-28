@@ -11,7 +11,8 @@ import { queueMessage } from "$lib/discord";
 import { setSecurityHeaders } from "$lib/router";
 import { allowed_sites } from "$store/globals";
 
-const routes_path = path.join(process.cwd(), "routes");
+const routes_path = path.resolve(".", "routes");
+console.log(routes_path);
 const routes = readdirSync(routes_path);
 const findRoute = (route_name: string) =>
   routes.find((route) => route.split(".")[0] == route_name);
@@ -41,7 +42,7 @@ async function handleRoute(
   const url = new URL(req.url);
 
   try {
-    const module = await import(path.join(routes_path, found_route));
+    const module = await import(path.resolve(routes_path, found_route));
 
     if (typeof module.default["exec"] === "function") {
       const result = await module.default["exec"](method, req);
@@ -145,7 +146,7 @@ Bun.serve({
       return limiterResponse;
     }
 
-    if (host.startsWith("api.localhost")) {
+    if (host.startsWith("api.localhost") || host.startsWith("api.unii.dev")) {
       let res = new Response();
 
       res = setSecurityHeaders(res) as Response;
@@ -194,38 +195,39 @@ Bun.serve({
 
       if (url.pathname.startsWith("/docs"))
         return new Response(
-          Bun.file(path.join(process.cwd(), "docs", "index.html")).stream(),
+          Bun.file(path.resolve(".", "docs", "index.html")).stream(),
         );
 
       if (url.pathname.startsWith("/seventv"))
         return new Response(
-          Bun.file(path.join(process.cwd(), "docs", "sevenTV.html")).stream(),
+          Bun.file(path.resolve(".", "docs", "sevenTV.html")).stream(),
         );
 
       if (url.pathname == "/api-spec.json")
         return new Response(
-          Bun.file(path.join(process.cwd(), "docs", "api-spec.json")).stream(),
+          Bun.file(path.resolve(".", "docs", "api-spec.json")).stream(),
         );
 
       if (url.pathname.startsWith("/robots.txt"))
-        return new Response(
-          Bun.file(path.join(process.cwd(), "robots.txt")).stream(),
-        );
+        return new Response(Bun.file(path.resolve(".", "robots.txt")).stream());
 
       const found_route = findRoute(pathSegments[0]);
 
       if (found_route)
         return handleRoute(req, found_route, req.method as HTTPMethod);
-    } else if (host.startsWith("cdn.localhost")) {
+    } else if (
+      host.startsWith("cdn.localhost") ||
+      host.startsWith("cdn.unii.dev")
+    ) {
       try {
         const pathname = decodeURIComponent(url.pathname);
 
-        const base = path.resolve(process.cwd(), "cdn");
+        const base = path.resolve(".", "cdn");
 
         let file_path = path.resolve(base, "." + pathname);
 
         if (pathname.startsWith("/badges/"))
-          file_path = path.resolve(process.cwd() + pathname);
+          file_path = path.resolve("." + pathname);
 
         const file_exists = fs.existsSync(file_path);
 
@@ -241,4 +243,4 @@ Bun.serve({
   },
 });
 
-if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
+//if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();

@@ -12,13 +12,13 @@ interface DirTreeNode {
   children?: DirTreeNode[];
 }
 
-const tree: DirTreeNode = dirTree(path.join(process.cwd(), "badges"), {
+const tree: DirTreeNode = dirTree(path.resolve(".", "badges"), {
   extensions: /\./,
 });
 
 const RequestRouter = router();
 
-const CDN_URL = process.env.CDN_URL;
+const CDN_URL = "https://cdn.unii.dev/";
 
 RequestRouter.add("GET", "/", async (req, res) => {
   if (!tree.children || !CDN_URL)
@@ -51,7 +51,7 @@ RequestRouter.add("GET", "/", async (req, res) => {
               }, {}) ?? {},
             type: badge_parent.name + " Badge",
             ...JSON.parse(
-              fs.readFileSync(path.join(badge.path, "badge.json"), "utf8"),
+              fs.readFileSync(path.resolve(badge.path, "badge.json"), "utf8"),
             ),
           };
         }) ?? [];
