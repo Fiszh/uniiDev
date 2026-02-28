@@ -57,7 +57,11 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
 
     const API_key = req.query.get("key");
 
-    if (!API_key || API_key != process.env.CHAT_STATS_V4_KEY)
+    if (
+      !API_key ||
+      !process.env.CHAT_STATS_V4_KEY ||
+      API_key != process.env.CHAT_STATS_V4_KEY
+    )
       throw { status: 401, message: "Invalid API key" };
 
     if (!channel) throw { status: 401, message: "Channel not provided" };

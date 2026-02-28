@@ -9,7 +9,11 @@ RequestRouter.add("GET", "/", async (req, res) => {
   const channelNames = req.query.getAll("name");
   const key = req.query.get("key");
 
-  if (!key || key != process.env.CHAT_STATS_API_KEY)
+  if (
+    !key ||
+    !process.env.CHAT_STATS_API_KEY ||
+    key != process.env.CHAT_STATS_API_KEY
+  )
     return res.status(500).json({
       error: "Invalid key!",
     });

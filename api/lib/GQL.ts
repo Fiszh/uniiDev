@@ -8,13 +8,15 @@ export let Queries = {
   headers: {
     "Client-ID": "ue6666qo983tsx6so1t0vnawi233wa",
     "Client-Version": undefined,
-    "X-Device-ID": process.env.DEVICE_ID,
     Referer: "https://twitch.tv/",
     "User-Agent":
       "Mozilla/5.0 (Linux; Android 7.1; Smart Box C1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
     "Content-Type": "application/json",
-  },
+  } as Record<string, string | undefined>,
 };
+
+if (process.env.DEVICE_ID)
+  Queries.headers["X-Device-ID"] = process.env.DEVICE_ID;
 
 export function getQuery(query_name: string): string | false {
   const queryPath = path.join(process.cwd(), "GQL", query_name + ".gql");
@@ -24,7 +26,6 @@ export function getQuery(query_name: string): string | false {
 }
 
 export async function sendGQLRequest(GQLbody: Record<string, any>) {
-  console.log(process.env.DEVICE_ID);
   if (!Queries.headers["Client-Version"])
     return {
       error: true,

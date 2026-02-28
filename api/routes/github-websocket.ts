@@ -26,32 +26,36 @@ async function verifySignature(req: Response) {
 async function deploy() {
   try {
     await new Promise((resolve: Function, reject: Function) => {
-      exec(
-        process.env.UCHAT_DEPLOY_PATH!,
-        undefined,
-        (err: ExecException | null, stdout, stderr) => {
-          if (stdout) console.log(stdout);
-          if (stderr) console.error(stderr);
-          if (err) return reject(err);
-          resolve();
+      if (process.env.UCHAT_DEPLOY_PATH)
+        exec(
+          process.env.UCHAT_DEPLOY_PATH,
+          undefined,
+          (err: ExecException | null, stdout, stderr) => {
+            if (stdout) console.log(stdout);
+            if (stderr) console.error(stderr);
+            if (err) return reject(err);
+            resolve();
+          },
+        );
+    });
+
+    if (process.env.CLOUDFLARE_PURGE_PATH) {
+      const cfRes = await fetch(process.env.CLOUDFLARE_PURGE_PATH, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
+          "Content-Type": "application/json",
         },
-      );
-    });
+        body: JSON.stringify({ purge_everything: true }),
+      });
 
-    const cfRes = await fetch(process.env.CLOUDFLARE_PURGE_PATH!, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ purge_everything: true }),
-    });
+      const data = await cfRes.json();
 
-    const data = await cfRes.json();
-    if (!data.success) {
-      console.error("Cloudflare purge failed", data);
-    } else {
-      console.log("Cloudflare cache has been purged!");
+      if (!data.success) {
+        console.error("Cloudflare purge failed", data);
+      } else {
+        console.log("Cloudflare cache has been purged!");
+      }
     }
   } catch (err) {
     console.error("Deploy failed:", err);

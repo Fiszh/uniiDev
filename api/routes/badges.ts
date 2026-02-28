@@ -21,7 +21,7 @@ const RequestRouter = router();
 const CDN_URL = process.env.CDN_URL;
 
 RequestRouter.add("GET", "/", async (req, res) => {
-  if (!tree.children)
+  if (!tree.children || !CDN_URL)
     return res.status(500).json({ message: "No badges found!", error: true });
   const mapped_badges = tree.children.reduce<Record<string, any>>(
     (acc, badge_parent) => {
