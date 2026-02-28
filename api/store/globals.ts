@@ -10,7 +10,13 @@ const UChat_Testers = [
   "528761326", // MAIN
 ];
 
-export const allowed_sites = ["http://localhost:5173"];
+export const allowed_sites = [
+  "http://localhost:5173",
+  "https://unii.dev",
+  "https://chat.unii.dev",
+  "https://api.unii.dev",
+  "https://dev.unii.dev",
+];
 
 export const security_headers = [
   "default-src 'self'",
