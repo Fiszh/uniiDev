@@ -35,17 +35,26 @@
     let filtered = $derived(
         searchFilter(data, searchQuery),
     ) as listDataIndexed[];
+
+    const blockedUsers = ["desktopsetup"];
 </script>
 
 {#if data && data.length}
     <Wrapper {...restData} bind:searchValue={searchQuery}>
         {#each filtered as stat, i}
-            <ol data-index={stat.index || i + 1}>
+            <ol
+                data-index={stat.index || i + 1}
+                class:censored={blockedUsers.includes(
+                    typeof stat.name == "string" ? stat.name.toLowerCase() : "",
+                )}
+            >
                 <p>{stat.index || i + 1}.</p>
                 {#if stat["url"]}
                     <img src={stat["url"]} alt="icon" loading="lazy" />
                 {/if}
-                <p>{stat.name}</p>
+                <p>
+                    {stat.name}
+                </p>
                 <p>({stat.count.toLocaleString()})</p>
             </ol>
         {/each}
@@ -68,6 +77,20 @@
 
         img {
             max-height: 1.5rem;
+        }
+    }
+
+    .censored {
+        cursor: pointer;
+
+        p {
+            color: black;
+            background-color: black;
+            padding: 0 2px;
+        }
+        &:hover p {
+            color: white;
+            background-color: transparent;
         }
     }
 

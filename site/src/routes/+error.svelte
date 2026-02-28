@@ -1,18 +1,17 @@
 <script>
-    import { site_title } from "../stores/global";
+  import { site_title } from "../stores/global";
 
-  function goBack() {
-    history.back();
-  }
+  const goBack = () => history.back();
 
-  site_title.set("Oops!")
+  site_title.set("Oops!");
 </script>
 
 <main>
   <div id="info">
     <h1>Oops! page not found.</h1>
     <p>
-      Looks like the page you're trying to reach doesn't exist or was moved. <br>
+      Looks like the page you're trying to reach doesn't exist or was moved. <br
+      />
       Check the URL or try one of the options below.
     </p>
     <div id="buttons">

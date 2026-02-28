@@ -1,5 +1,7 @@
 export async function getStreamers(): Promise<Streamers[] | []> {
-    const response = await fetch('https://api.github.com/repos/Fiszh/chat-stats/contents/');
+    const response = await fetch(
+        "https://api.github.com/repos/Fiszh/chat-stats/contents/",
+    );
 
     if (!response.ok) return [];
 
@@ -15,9 +17,13 @@ export async function getStreamers(): Promise<Streamers[] | []> {
     return [];
 }
 
-export async function getChatStatsDates(streamer_name: string): Promise<Dates[] | []> {
+export async function getChatStatsDates(
+    streamer_name: string,
+): Promise<Dates[] | []> {
     console.log(streamer_name);
-    const response = await fetch(`https://api.github.com/repos/Fiszh/chat-stats/contents/${streamer_name}`);
+    const response = await fetch(
+        `https://api.github.com/repos/Fiszh/chat-stats/contents/${streamer_name}`,
+    );
 
     if (!response.ok) return [];
 
@@ -34,8 +40,13 @@ export async function getChatStatsDates(streamer_name: string): Promise<Dates[] 
     return [];
 }
 
-export async function getChatStatsData(streamer_name: string, json: string): Promise<chatStatsData[] | []> {
-    const response = await fetch(`https://raw.githubusercontent.com/Fiszh/chat-stats/main/${streamer_name}/${json}`);
+export async function getChatStatsData(
+    streamer_name: string,
+    json: string,
+): Promise<chatStatsData[] | []> {
+    const response = await fetch(
+        `https://raw.githubusercontent.com/Fiszh/chat-stats/main/${streamer_name}/${json}`,
+    );
 
     if (!response.ok) return [];
 

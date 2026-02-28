@@ -1,5 +1,5 @@
 export const load = ({ params }) => {
-  return {
-    rest: params.rest?.split('/') || []
-  };
+    return {
+        rest: params.rest?.split("/") || [],
+    };
 };
