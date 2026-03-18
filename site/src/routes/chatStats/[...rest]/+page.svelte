@@ -86,10 +86,11 @@
 
         if (json == "range") {
           const v4_res = await fetch(
-            `https://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${user_token}`,
+            `https://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${getCookie("twitchToken")}`,
           );
 
-          chatStats_Data = await v4_res.json();
+          if (v4_res.ok) chatStats_Data = await v4_res.json();
+          console.log(chatStats_Data);
         } else {
           chatStats_Data = await chatStats.getChatStatsData(channel, json);
         }
