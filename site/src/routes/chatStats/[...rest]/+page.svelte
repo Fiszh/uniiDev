@@ -86,7 +86,7 @@
 
         if (json == "range") {
           const v4_res = await fetch(
-            `http://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${user_token}`,
+            `https://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${user_token}`,
           );
 
           chatStats_Data = await v4_res.json();
