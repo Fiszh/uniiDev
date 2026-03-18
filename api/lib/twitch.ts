@@ -36,6 +36,43 @@ export async function validateUser(
   }
 }
 
+interface mod_res {
+  data: {
+    broadcaster_id: string;
+    broadcaster_login: string;
+    broadcaster_name: string;
+  }[];
+  pagination: {
+    cursor: string;
+  };
+}
+
+export async function getModdedChannels(
+  token: string,
+  client_id: string,
+  user_id: string,
+): Promise<mod_res | validate_err> {
+  try {
+    const { data } = await axios.get(
+      `https://api.twitch.tv/helix/moderation/channels?user_id=${user_id}`,
+      {
+        headers: {
+          Authorization: token,
+          "Client-Id": client_id,
+        },
+      },
+    );
+
+    return data;
+  } catch (error) {
+    return {
+      error: "Unauthorized",
+      status: 401,
+      message: "Invalid or expired token",
+    };
+  }
+}
+
 export async function validate(token: string) {
   if (!token || !token.startsWith("Bearer")) return null;
 

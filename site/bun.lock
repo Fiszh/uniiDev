@@ -12,6 +12,7 @@
         "@sveltejs/adapter-static": "^3.0.10",
         "@sveltejs/kit": "^2.50.1",
         "@sveltejs/vite-plugin-svelte": "^6.2.4",
+        "date-picker-svelte": "^2.17.0",
         "prettier-plugin-svelte": "^3.5.0",
         "sass-embedded": "^1.97.3",
         "svelte": "^5.48.2",
@@ -200,6 +201,8 @@
     "colorjs.io": ["colorjs.io@0.5.2", "", {}, "sha512-twmVoizEW7ylZSN32OgKdXRmo1qg+wT5/6C3xu5b9QsWzSFAhHLn2xd8ro0diCsKfCj1RdaTP/nrcW+vAoQPIw=="],
 
     "cookie": ["cookie@0.6.0", "", {}, "sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw=="],
+
+    "date-picker-svelte": ["date-picker-svelte@2.17.0", "", { "peerDependencies": { "svelte": "^3.24.0 || ^4.0.0 || ^5.0.0" } }, "sha512-lv558Odoyh0+yYFvC2DAKCALMtGKv9hfGBS+CjdSi1xB0qcJm+dtaVABcLQaAJ5Bj+jizRBVRqfC1Tq2Gcpsog=="],
 
     "deepmerge": ["deepmerge@4.3.1", "", {}, "sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A=="],
 

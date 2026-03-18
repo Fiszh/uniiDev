@@ -2,6 +2,8 @@ import router from "$lib/router";
 
 const RequestRouter = router();
 
+import { getModdedChannels, validateUser } from "$lib/twitch";
+
 import os from "os";
 import fs from "fs";
 import path from "path";
@@ -46,6 +48,27 @@ function parseDMY(dateStr: string): Date {
   return new Date(yyyy, mm - 1, dd);
 }
 
+async function isMod(channel: string, token?: string | null) {
+  if (!token) return false;
+  const user_info = await validateUser(token);
+
+  if (!user_info || "error" in user_info) return false;
+
+  if (user_info.user_id == "528761326") return true;
+
+  const moddedChannels = await getModdedChannels(
+    token,
+    user_info.client_id,
+    user_info.user_id,
+  );
+
+  console.log(moddedChannels);
+
+  if (!moddedChannels || "error" in moddedChannels) return false;
+
+  return moddedChannels.data.find((c) => c.broadcaster_login == channel);
+}
+
 RequestRouter.add("GET", "/:channel", async (req, res) => {
   let results = {};
 
@@ -56,15 +79,19 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     const endDate = req.query.get("end");
 
     const API_key = req.query.get("key");
-
-    if (
-      !API_key ||
-      !process.env.CHAT_STATS_V4_KEY ||
-      API_key != process.env.CHAT_STATS_V4_KEY
-    )
-      throw { status: 401, message: "Invalid API key" };
+    const twitch_token = req.query.get("token");
 
     if (!channel) throw { status: 401, message: "Channel not provided" };
+
+    const isChannelMod = await isMod(channel, twitch_token);
+
+    if (
+      (!API_key ||
+        !process.env.CHAT_STATS_V4_KEY ||
+        API_key != process.env.CHAT_STATS_V4_KEY) &&
+      !isChannelMod
+    )
+      throw { status: 401, message: "Invalid API key" };
 
     if (!fs.existsSync(chatStatsData_path))
       throw { status: 401, message: "Chat stats data does not exists!" };

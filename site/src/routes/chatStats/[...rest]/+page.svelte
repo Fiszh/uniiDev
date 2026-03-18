@@ -1,274 +1,308 @@
 <script lang="ts">
-    import { site_title, TopBar } from "../../../stores/global";
+  import { site_title, TopBar } from "../../../stores/global";
 
-    import * as chatStats from "$lib/chatStats";
+  import * as chatStats from "$lib/chatStats";
 
-    import StretchButton from "../../../components/StretchButton.svelte";
-    import List from "../../../components/chatStats/list.svelte";
-    import { setGap } from "$lib/styling.js";
-    import { fade } from "svelte/transition";
-    import NumberStat from "../../../components/chatStats/number_stat.svelte";
-    import { onMount } from "svelte";
-    import { getCookie } from "$lib/cookie.js";
-    import Wrapper from "../../../components/chatStats/wrapper.svelte";
+  import StretchButton from "../../../components/StretchButton.svelte";
+  import List from "../../../components/chatStats/list.svelte";
+  import { setGap } from "$lib/styling.js";
+  import { fade } from "svelte/transition";
+  import NumberStat from "../../../components/chatStats/number_stat.svelte";
+  import { onMount } from "svelte";
+  import { getCookie } from "$lib/cookie.js";
 
-    site_title.set("Chat Stats");
+  import { MinusIcon } from "@lucide/svelte";
+  import { DateInput } from "date-picker-svelte";
 
-    TopBar.update((data) => {
-        data = {
-            ...data,
-            login: true,
-        };
+  let startDate = $state(new Date());
+  let endDate = $state(new Date());
 
-        return data;
-    });
+  site_title.set("Chat Stats");
 
-    const { params } = $props();
+  TopBar.update(
+    (data) =>
+      (data = {
+        ...data,
+        login: true,
+      }),
+  );
 
-    function getDerivedParams() {
-        const rest = Array.isArray(params.rest)
-            ? params.rest
-            : params.rest.split("/");
+  const { params } = $props();
 
-        return {
-            channel: rest[0],
-            json: rest[1],
-        };
-    }
+  function getDerivedParams() {
+    const rest = Array.isArray(params.rest)
+      ? params.rest
+      : params.rest.split("/");
 
-    let buttonsType = $state<string>("");
-
-    let jsonButtons = $state<Streamers[]>([]);
-    let dateButtons = $state<Dates[]>([]);
-    let chatStats_Data: chatStatsData[] = [];
-    const rowData = {
-        number: {} as Record<string, number>,
-        list: {} as Record<number, listStatData[]>,
+    return {
+      channel: rest[0],
+      json: rest[1],
     };
+  }
 
-    function isListStatData(stat: chatStatsData): stat is listStatData {
-        return typeof stat === "object" && stat !== null && "row" in stat;
-    }
+  let buttonsType = $state<string>("");
 
-    let user_login = $state<string | null>("");
+  let jsonButtons = $state<Streamers[]>([]);
+  let dateButtons = $state<Dates[]>([]);
+  let chatStats_Data: chatStatsData[] | false = [];
+  const rowData = {
+    number: {} as Record<string, number>,
+    list: {} as Record<number, listStatData[]>,
+  };
 
-    $effect(() => {
-        const { channel, json } = getDerivedParams();
+  function isListStatData(stat: chatStatsData): stat is listStatData {
+    return typeof stat === "object" && stat !== null && "row" in stat;
+  }
 
-        rowData["number"] = {};
-        rowData["list"] = {};
+  let user_login = $state<string | null>("");
+  let user_token = $state<string | null>("");
 
-        console.log(channel, json);
+  $effect(() => {
+    const { channel, json } = getDerivedParams();
 
-        (async () => {
-            setGap("1rem");
+    rowData["number"] = {};
+    rowData["list"] = {};
 
-            if (!channel) {
-                console.log("getting channel");
-                const channels_res = await chatStats.getStreamers();
-                if (channels_res?.length)
-                    jsonButtons = channels_res.filter(
-                        (dir) => dir.type === "dir",
-                    );
+    console.log(channel, json);
 
-                buttonsType = "channel";
-            } else if (!json) {
-                console.log("getting json");
-                dateButtons = await chatStats.getChatStatsDates(channel);
+    (async () => {
+      setGap("1rem");
 
-                buttonsType = "json";
-            } else {
-                console.log("getting data");
-                chatStats_Data = await chatStats.getChatStatsData(
-                    channel,
-                    json,
-                );
+      if (!channel) {
+        console.log("getting channel");
+        const channels_res = await chatStats.getStreamers();
+        if (channels_res?.length)
+          jsonButtons = channels_res.filter((dir) => dir.type === "dir");
 
-                const dataValues: chatStatsData[] =
-                    Object.values(chatStats_Data);
-                const dataEntries: [string, chatStatsData][] =
-                    Object.entries(chatStats_Data);
+        buttonsType = "channel";
+      } else if (!json) {
+        console.log("getting json");
+        dateButtons = await chatStats.getChatStatsDates(channel);
 
-                const capitalize = (str: string) =>
-                    str ? str[0].toUpperCase() + str.slice(1) : str;
+        buttonsType = "json";
+      } else {
+        console.log("getting data");
+        chatStats_Data = false;
 
-                for (const [key, value] of dataEntries) {
-                    if (
-                        ["streamer_id"].includes(key) ||
-                        typeof value != "number"
-                    )
-                        continue;
+        if (json == "range") {
+          const v4_res = await fetch(
+            `http://api.localhost:3000/v4/${channel}/${window.location.search}&token=Bearer ${user_token}`,
+          );
 
-                    const name = capitalize(key.replace(/_/g, " "));
+          chatStats_Data = await v4_res.json();
+        } else {
+          chatStats_Data = await chatStats.getChatStatsData(channel, json);
+        }
 
-                    rowData["number"][name] = value;
-                }
+        const dataValues: chatStatsData[] = Object.values(chatStats_Data);
+        const dataEntries: [string, chatStatsData][] =
+          Object.entries(chatStats_Data);
 
-                console.log(rowData);
+        const capitalize = (str: string) =>
+          str ? str[0].toUpperCase() + str.slice(1) : str;
 
-                for (const stat of dataValues) {
-                    if (!isListStatData(stat) || rowData.list[stat.row])
-                        continue;
+        for (const [key, value] of dataEntries) {
+          if (["streamer_id"].includes(key) || typeof value != "number")
+            continue;
 
-                    rowData.list[stat.row] = dataValues.filter(
-                        (s): s is listStatData =>
-                            isListStatData(s) && s.row === stat.row,
-                    );
-                }
+          const name = capitalize(key.replace(/_/g, " "));
 
-                buttonsType = "stats";
-                setGap("0rem");
+          rowData["number"][name] = value;
+        }
 
-                if (user_login) statsForUser = getUserStats();
-            }
-        })();
-    });
+        console.log(rowData);
 
-    type UserStat = {
-        name: string;
-        data: number;
-    };
+        for (const stat of dataValues) {
+          if (!isListStatData(stat) || rowData.list[stat.row]) continue;
 
-    let statsForUser = $state<UserStat[]>([]);
+          rowData.list[stat.row] = dataValues.filter(
+            (s): s is listStatData => isListStatData(s) && s.row === stat.row,
+          );
+        }
 
-    function onCookieChange() {
-        console.log("cookie changed");
+        buttonsType = "stats";
+        setGap("0rem");
 
-        user_login = getCookie("login");
+        if (user_login) statsForUser = getUserStats();
+      }
+    })();
+  });
 
-        statsForUser = getUserStats();
-    }
+  type UserStat = {
+    name: string;
+    data: number;
+  };
 
-    function getUserStats() {
-        if (!rowData?.list || !user_login) return [] as UserStat[];
+  let statsForUser = $state<UserStat[]>([]);
 
-        const login = user_login.toLowerCase();
+  function onCookieChange() {
+    console.log("cookie changed");
 
-        return Object.values(rowData.list)
-            .flatMap((lists) => lists)
-            .flatMap((list) => {
-                const match = list.data.find(
-                    (d) => String(d.name ?? "").toLowerCase() === login,
-                );
+    user_login = getCookie("login");
+    user_token = getCookie("twitchToken");
 
-                return match
-                    ? [{ name: list.stat_name, data: match.count }]
-                    : [];
-            }) as UserStat[];
-    }
+    statsForUser = getUserStats();
+  }
 
-    onMount(() => {
-        user_login = getCookie("login");
+  function getUserStats() {
+    if (!rowData?.list || !user_login) return [] as UserStat[];
 
-        window.addEventListener("cookiechange", onCookieChange);
-    });
+    const login = user_login.toLowerCase();
+
+    return Object.values(rowData.list)
+      .flatMap((lists) => lists)
+      .flatMap((list) => {
+        const match = list.data.find(
+          (d) => String(d.name ?? "").toLowerCase() === login,
+        );
+
+        return match ? [{ name: list.stat_name, data: match.count }] : [];
+      }) as UserStat[];
+  }
+
+  onMount(() => {
+    user_login = getCookie("login");
+    user_token = getCookie("twitchToken");
+
+    window.addEventListener("cookiechange", onCookieChange);
+  });
 </script>
 
 <p id="segments">
-    <a href="/chatStats">home</a>
-    {#each params.rest.split("/") as param, i}
-        <a
-            transition:fade={{ duration: 200 }}
-            href="/chatStats/{params.rest
-                .split('/')
-                .slice(0, i + 1)
-                .join('/')}">/{param}</a
-        >
-    {/each}
+  <a href="/chatStats">home</a>
+  {#each params.rest.split("/") as param, i}
+    <a
+      transition:fade={{ duration: 200 }}
+      href="/chatStats/{params.rest
+        .split('/')
+        .slice(0, i + 1)
+        .join('/')}">/{param}</a
+    >
+  {/each}
 </p>
 
 {#if buttonsType == "channel"}
-    {#each jsonButtons as jsonButton}
-        <StretchButton
-            button={{
-                title: jsonButton.path,
-                link: window.location.href + "/" + jsonButton.path,
-                new_window: false,
-            }}
-        />
-    {/each}
+  {#each jsonButtons as jsonButton}
+    <StretchButton
+      button={{
+        title: jsonButton.path,
+        link: window.location.href + "/" + jsonButton.path,
+        new_window: false,
+      }}
+    />
+  {/each}
 {:else if buttonsType == "json"}
-    {#each dateButtons as dateButton}
-        <StretchButton
-            button={{
-                title: dateButton.title,
-                link: window.location.href + "/" + dateButton.path,
-                new_window: false,
-            }}
-        />
-    {/each}
+  <h2>Custom Date (streamer/mod only)</h2>
+  <section id="custom_date">
+    <DateInput bind:value={startDate} />
+    <MinusIcon size="2rem" />
+    <DateInput bind:value={endDate} />
+  </section>
+  <StretchButton
+    button={{
+      title: "Check Stats",
+      link:
+        window.location.href +
+        "/range" +
+        `?start=${startDate.getDate()}-${startDate.getMonth() + 1}-${startDate.getFullYear()}` +
+        `&end=${endDate.getDate()}-${endDate.getMonth() + 1}-${endDate.getFullYear()}`,
+      new_window: false,
+    }}
+  />
+  <h3>Other</h3>
+  {#each dateButtons as dateButton}
+    <StretchButton
+      button={{
+        title: dateButton.title,
+        link: window.location.href + "/" + dateButton.path,
+        new_window: false,
+      }}
+    />
+  {/each}
 {:else if buttonsType == "stats"}
-    {#if user_login}
-        <p>{user_login + "'s stats"}</p>
-        <section id="row">
-            {#each statsForUser as stat}
-                <NumberStat {stat} />
-            {/each}
-        </section>
-    {/if}
-
+  {#if user_login}
+    <p>{user_login + "'s stats"}</p>
     <section id="row">
-        {#each Object.entries(rowData["number"]) as [key, value]}
-            <NumberStat stat={{ name: key, data: value }} />
-        {/each}
+      {#each statsForUser as stat}
+        <NumberStat {stat} />
+      {/each}
     </section>
+  {/if}
 
-    {#each Object.values(rowData["list"]) as lists}
-        <section id="row">
-            {#each lists as list}
-                <List
-                    name={list.stat_name}
-                    data={list.data.sort((a, b) => b.count - a.count)}
-                />
-            {/each}
-        </section>
+  <section id="row">
+    {#each Object.entries(rowData["number"]) as [key, value]}
+      <NumberStat stat={{ name: key, data: value }} />
     {/each}
+  </section>
 
-    <a href="https://chat.unii.dev" target="_blank">Check out UChat</a>
+  {#each Object.values(rowData["list"]) as lists}
+    <section id="row">
+      {#each lists as list}
+        <List
+          name={list.stat_name}
+          data={list.data.sort((a, b) => b.count - a.count)}
+        />
+      {/each}
+    </section>
+  {/each}
+
+  <a href="https://chat.unii.dev" target="_blank">Check out UChat</a>
 {:else}
-    <p>Please wait...</p>
+  <p>Please wait...</p>
 {/if}
 
 <style lang="scss">
-    a {
-        padding-block: 0.5rem;
-        box-sizing: border-box;
+  :root {
+    --date-picker-background: #0d0e11;
+    --date-picker-foreground: #f7f7f7;
+  }
 
-        &:hover {
-            text-decoration: underline;
-        }
+  a {
+    padding-block: 0.5rem;
+    box-sizing: border-box;
+
+    &:hover {
+      text-decoration: underline;
     }
+  }
 
-    #segments {
-        font-size: 1.5rem;
-        font-weight: bold;
-        display: inline-flex;
+  #segments {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: inline-flex;
+  }
+
+  #row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    gap: 2.5rem;
+    padding: 1.5rem 2.5rem;
+    box-sizing: border-box;
+    font-size: 1rem;
+
+    width: 100%;
+
+    border-bottom: 1px solid;
+    border-image: linear-gradient(
+        to right,
+        #33333300 5%,
+        #333 20%,
+        #333 80%,
+        #33333300 95%
+      )
+      1;
+
+    &:last-child {
+      border: none;
     }
+  }
 
-    #row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+  #custom_date {
+    display: inline-flex;
+    justify-content: center;
 
-        gap: 2.5rem;
-        padding: 1.5rem 2.5rem;
-        box-sizing: border-box;
-        font-size: 1rem;
-
-        width: 100%;
-
-        border-bottom: 1px solid;
-        border-image: linear-gradient(
-                to right,
-                #33333300 5%,
-                #333 20%,
-                #333 80%,
-                #33333300 95%
-            )
-            1;
-
-        &:last-child {
-            border: none;
-        }
-    }
+    align-items: center;
+  }
 </style>
