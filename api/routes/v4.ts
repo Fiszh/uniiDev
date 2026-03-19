@@ -55,6 +55,7 @@ async function isMod(channel: string, token?: string | null) {
   if (!user_info || "error" in user_info) return false;
 
   if (user_info.user_id == "528761326") return true;
+  if (user_info.login == channel) return true;
 
   const moddedChannels = await getModdedChannels(
     token,

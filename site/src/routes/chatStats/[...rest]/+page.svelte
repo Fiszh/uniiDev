@@ -90,7 +90,6 @@
           );
 
           if (v4_res.ok) chatStats_Data = await v4_res.json();
-          console.log(chatStats_Data);
         } else {
           chatStats_Data = await chatStats.getChatStatsData(channel, json);
         }
