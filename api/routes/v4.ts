@@ -207,12 +207,6 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     merged_data["path"] = channel_path;
     merged_data["time_taken"] = end - start;
 
-    fs.writeFileSync(
-      path.resolve(".", "merged.json"),
-      JSON.stringify(merged_data),
-      "utf-8",
-    );
-
     console.log("Elapsed:", end - start, "ms");
 
     results = merged_data;

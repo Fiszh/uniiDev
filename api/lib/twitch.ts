@@ -54,7 +54,7 @@ export async function getModdedChannels(
 ): Promise<mod_res | validate_err> {
   try {
     const { data } = await axios.get(
-      `https://api.twitch.tv/helix/moderation/channels?user_id=${user_id}`,
+      `https://api.twitch.tv/helix/moderation/channels?user_id=${user_id}&first=100`,
       {
         headers: {
           Authorization: token,
