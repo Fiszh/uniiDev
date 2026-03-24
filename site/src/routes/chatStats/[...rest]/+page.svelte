@@ -40,6 +40,13 @@
     };
   }
 
+  interface FetchedEmotes {
+    name: string;
+    count: 0;
+    at: 0;
+    url: string;
+  }
+
   let buttonsType = $state<string>("");
 
   let jsonButtons = $state<Streamers[]>([]);
@@ -55,7 +62,6 @@
   }
 
   let user_login = $state<string | null>("");
-  let user_token = $state<string | null>("");
 
   $effect(() => {
     const { channel, json } = getDerivedParams();
@@ -89,7 +95,47 @@
             `https://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${getCookie("twitchToken")}`,
           );
 
-          if (v4_res.ok) chatStats_Data = await v4_res.json();
+          if (v4_res.ok) {
+            chatStats_Data = await v4_res.json();
+
+            if (
+              chatStats_Data &&
+              "streamer_id" in chatStats_Data &&
+              "7TV_emotes" in chatStats_Data &&
+              typeof chatStats_Data["7TV_emotes"] === "object" &&
+              chatStats_Data["7TV_emotes"] !== null &&
+              "data" in chatStats_Data["7TV_emotes"]
+            ) {
+              const stv_emotes = await fetch(
+                "https://7tv.io/v3/users/twitch/" +
+                  chatStats_Data["streamer_id"],
+              );
+
+              const fetchedEmotes_data = await stv_emotes.json();
+
+              if (fetchedEmotes_data["emote_set"]["emotes"]) {
+                const mappedEmotes = fetchedEmotes_data["emote_set"][
+                  "emotes"
+                ].flatMap((emote: Record<string, string>) => ({
+                  name: emote.name,
+                  count: 0,
+                  at: 0,
+                  url: `https://cdn.7tv.app/emote/${emote.id}/4x.avif`,
+                })) as FetchedEmotes[];
+
+                chatStats_Data["7TV_emotes"]["data"] = [
+                  ...(chatStats_Data["7TV_emotes"]["data"] as any[]),
+                  ...mappedEmotes,
+                ].filter(
+                  (emote, index, self) =>
+                    index ===
+                    self.findIndex(
+                      (e) => e.name === emote.name || e.url === emote.url,
+                    ),
+                );
+              }
+            }
+          }
         } else {
           chatStats_Data = await chatStats.getChatStatsData(channel, json);
         }
@@ -139,7 +185,6 @@
     console.log("cookie changed");
 
     user_login = getCookie("login");
-    user_token = getCookie("twitchToken");
 
     statsForUser = getUserStats();
   }
@@ -162,7 +207,6 @@
 
   onMount(() => {
     user_login = getCookie("login");
-    user_token = getCookie("twitchToken");
 
     window.addEventListener("cookiechange", onCookieChange);
   });

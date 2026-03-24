@@ -53,7 +53,12 @@
       >
         <p>{stat.index || i + 1}.</p>
         {#if stat["url"]}
-          <img src={stat["url"]} alt="icon" loading="lazy" />
+          <img
+            src={stat["url"]}
+            alt="icon"
+            loading="lazy"
+            class:untracked={stat["at"] == 0 && stat["count"] == 0}
+          />
         {/if}
         <p>
           {stat.name}
@@ -81,6 +86,11 @@
     img {
       max-height: 1.5rem;
     }
+  }
+
+  .untracked {
+    outline: rgb(110, 209, 255) 1px solid;
+    border-radius: 0.2rem;
   }
 
   .censored {
