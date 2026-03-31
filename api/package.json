@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "bun build index.ts --outdir ./build --target=bun --sourcemap"
+    "build": "bun build index.ts --outdir ./build --target=bun --sourcemap",
+    "dev": "bun run --watch index.ts"
   },
   "private": true,
   "devDependencies": {

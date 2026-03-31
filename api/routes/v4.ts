@@ -69,6 +69,7 @@ async function isMod(channel: string, token?: string | null) {
 
   return moddedChannels.data.find((c) => c.broadcaster_login == channel);
 }
+
 function mergeDataState(
   new_data: dataState["data"],
   old_data?: dataState["data"],
@@ -76,25 +77,23 @@ function mergeDataState(
   if (!old_data) return new_data;
 
   return Object.values(
-    old_data.reduce<Record<string, dataState["data"][0]>>((acc, data) => {
-      const found_data = new_data.find(
-        (data_part) => data.name == data_part.name,
-      );
+    [...new_data, ...old_data].reduce<Record<string, dataState["data"][0]>>(
+      (acc, data) => {
+        const entry = acc[data.name];
 
-      const entry = acc[data.name];
-      if (found_data && entry) {
-        entry.count += found_data.count;
-      } else if (found_data && !entry) {
-        acc[data.name] = {
-          ...data,
-          count: data.count + found_data.count,
-        };
-      } else {
-        acc[data.name] = data;
-      }
+        if (entry) {
+          acc[data.name] = {
+            ...entry,
+            count: entry.count + data.count,
+          };
+        } else {
+          acc[data.name] = data;
+        }
 
-      return acc;
-    }, {}),
+        return acc;
+      },
+      {},
+    ),
   );
 }
 
