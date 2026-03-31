@@ -69,6 +69,34 @@ async function isMod(channel: string, token?: string | null) {
 
   return moddedChannels.data.find((c) => c.broadcaster_login == channel);
 }
+function mergeDataState(
+  new_data: dataState["data"],
+  old_data?: dataState["data"],
+): dataState["data"] {
+  if (!old_data) return new_data;
+
+  return Object.values(
+    old_data.reduce<Record<string, dataState["data"][0]>>((acc, data) => {
+      const found_data = new_data.find(
+        (data_part) => data.name == data_part.name,
+      );
+
+      const entry = acc[data.name];
+      if (found_data && entry) {
+        entry.count += found_data.count;
+      } else if (found_data && !entry) {
+        acc[data.name] = {
+          ...data,
+          count: data.count + found_data.count,
+        };
+      } else {
+        acc[data.name] = data;
+      }
+
+      return acc;
+    }, {}),
+  );
+}
 
 RequestRouter.add("GET", "/:channel", async (req, res) => {
   let results = {};
@@ -150,23 +178,6 @@ RequestRouter.add("GET", "/:channel", async (req, res) => {
     );
 
     //console.log(merge_data);
-
-    function mergeDataState(
-      new_data: dataState["data"],
-      old_data?: dataState["data"],
-    ): dataState["data"] {
-      if (!old_data) return new_data;
-
-      return old_data.flatMap((data) => {
-        const found_data = new_data.find(
-          (new_data_part) => new_data_part.name == data.name,
-        );
-
-        if (found_data) data.count += found_data.count;
-
-        return data;
-      });
-    }
 
     const non_mergeable = ["streamer_id"];
     const blocked_keys = ["json_name"];
