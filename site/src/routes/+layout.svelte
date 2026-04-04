@@ -12,16 +12,12 @@
   import { dev } from "$app/environment";
   import { delCookie, setCookie } from "$lib/cookie";
 
-  let user_login: string | undefined;
-
   async function handleToken(token: string) {
     const validated = await validateToken(token);
 
     if (validated) {
       setCookie("login", validated.login, 1);
       setCookie("client_id", validated.client_id, 1);
-
-      user_login = validated.login;
     }
   }
 
@@ -30,7 +26,6 @@
 
     delCookie("login");
     delCookie("client_id");
-    user_login = undefined;
   }
 
   let { children } = $props();
@@ -148,6 +143,7 @@
     background-color: rgba(0, 0, 0, 0.85);
     border-radius: 25rem;
     padding: 0.25rem 1rem;
+    z-index: 1000000000;
     font-weight: bold;
   }
 </style>
