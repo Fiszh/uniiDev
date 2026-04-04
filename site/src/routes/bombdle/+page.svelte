@@ -38,7 +38,7 @@
     const f = Array.isArray(file)
       ? file[Math.floor(Math.random() * file.length)]
       : file;
-    const audio = new Audio("bombdle/sounds/" + f);
+    const audio = new Audio("bombdle_assets/sounds/" + f);
     audio.volume = 0.5;
     audio.play();
   };
@@ -54,7 +54,7 @@
   let tries_left = writable<number>(6);
 
   function endRound(status: bombdle_possible_status, reveal_timeout: number) {
-    videoPlayer.src = "bombdle/boom.webm";
+    videoPlayer.src = "bombdle_assets/boom.webm";
     setCookie("bombdle_status", status, tomorrow.toUTCString());
 
     clearInterval(timerInterval);
@@ -223,7 +223,7 @@
       skip_p.classList.add("hidden");
 
       if (videoPlayer.src.endsWith("plant.webm")) {
-        videoPlayer.src = "bombdle/defuse.webm";
+        videoPlayer.src = "bombdle_assets/defuse.webm";
         videoPlayer.play();
       } else if (videoPlayer.src.endsWith("defuse.webm")) {
         playSound(sound_list.start);
@@ -293,7 +293,7 @@
       {/each}
     </section>
   </section>
-  <img src="bombdle/cs_bomb.png" alt="bomb" draggable="false" />
+  <img src="bombdle_assets/cs_bomb.png" alt="bomb" draggable="false" />
   <section id="code">
     {#each [...Array(7 - ($inputCode ? $inputCode.length : 0)), ...$inputCode] as key, i}
       <p class:number={typeof key != "undefined"} data-index={i}>
@@ -309,7 +309,7 @@
 </section>
 
 <video
-  src="bombdle/plant.webm"
+  src="bombdle_assets/plant.webm"
   bind:this={videoPlayer}
   class="blur"
   playsinline
