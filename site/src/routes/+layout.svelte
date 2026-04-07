@@ -11,6 +11,9 @@
 
   import { dev } from "$app/environment";
   import { delCookie, setCookie } from "$lib/cookie";
+  import { onMount } from "svelte";
+
+  let status_message = $state<null | string>();
 
   async function handleToken(token: string) {
     const validated = await validateToken(token);
@@ -27,6 +30,20 @@
     delCookie("login");
     delCookie("client_id");
   }
+
+  onMount(async () => {
+    const api_status = await fetch("http://api.localhost:3000/status");
+
+    const status_data = await api_status.json();
+
+    if (status_data.message) {
+      const date_now = Date.now();
+
+      if (status_data.till >= date_now) {
+        status_message = status_data.message;
+      }
+    }
+  });
 
   let { children } = $props();
 </script>
@@ -66,6 +83,9 @@
       <LoginButton onToken={handleToken} onLogOut={logOut} />
     {/if}
   </topbar>
+  {#if status_message}
+    <section id="status">{status_message}</section>
+  {/if}
 {/if}
 
 <main id="main">
@@ -144,6 +164,16 @@
     border-radius: 25rem;
     padding: 0.25rem 1rem;
     z-index: 1000000000;
+    font-weight: bold;
+  }
+
+  #status {
+    border-bottom: 0.15rem solid #ffffff;
+    width: 100%;
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.021);
     font-weight: bold;
   }
 </style>
