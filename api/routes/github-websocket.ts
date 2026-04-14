@@ -8,13 +8,11 @@ import type { ExecException } from "child_process";
 
 const SECRET = process.env.GITHUB_WEBHOOK_SECRET;
 
-async function verifySignature(req: Response) {
-  const signature = req.headers.get("x-hub-signature-256");
+async function verifySignature(signature: string | null, rawBody: string) {
   if (!signature || !SECRET) return false;
 
   const hmac = crypto.createHmac("sha256", SECRET);
-  const digest =
-    "sha256=" + hmac.update(await req.json().toString()).digest("hex");
+  const digest = "sha256=" + hmac.update(rawBody).digest("hex");
 
   try {
     return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
@@ -63,7 +61,13 @@ async function deploy() {
 }
 
 RequestRouter.add("POST", "/", async (req, res) => {
-  if (!(await verifySignature(req)))
+  const rawBody = await req.text();
+  const signature_header = req.headers.get("x-hub-signature-256");
+
+  if (!signature_header || !rawBody)
+    return res.status(401).send("No body or header");
+
+  if (!(await verifySignature(signature_header, rawBody)))
     return res.status(401).send("Invalid signature");
 
   const payload = JSON.parse(await req.json().toString());
