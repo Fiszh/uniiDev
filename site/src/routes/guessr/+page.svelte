@@ -114,7 +114,12 @@
 
     setInterval(() => {
       const now = new Date();
-      msUntilReset = tomorrow.getTime() - now.getTime();
+      msUntilReset =
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + 1,
+        ) - now.getTime();
     }, 1000);
   });
 

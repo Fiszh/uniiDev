@@ -8,6 +8,7 @@
       title: "Configure the Chat Overlay (UChat)",
       link: "https://chat.unii.dev/",
     },
+    { title: "Cop Slip Title Guessr", link: "/guessr/" },
     { title: "Chat Stats", link: "/chatStats/" },
     {
       title: "Unofficial 7TV API documentation (docs proxy)",
