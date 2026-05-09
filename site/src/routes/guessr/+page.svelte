@@ -50,8 +50,7 @@
   });
 
   const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setUTCHours(24, 0, 0, 0);
 
   async function fetchRound() {
     const roundsRes = await fetch(API_URL + "/guessr/rounds");
