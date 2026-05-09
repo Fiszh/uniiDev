@@ -10,6 +10,7 @@ import { RateLimiter } from "ts-rate-limiter";
 import { queueMessage } from "$lib/discord";
 import { setSecurityHeaders } from "$lib/router";
 import { allowed_sites } from "$store/globals";
+import { generateGuessrRounds } from "$background/guessr";
 
 const routes_path = path.resolve(".", "routes");
 console.log(routes_path);
@@ -244,3 +245,4 @@ Bun.serve({
 });
 
 if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
+generateGuessrRounds();

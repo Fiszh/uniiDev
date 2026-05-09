@@ -1,6 +1,5 @@
 import axios from "axios";
 
-import { Queries } from "$lib/GQL";
 import { queueMessage } from "$lib/discord";
 
 const getRandomInterval = (minMinutes = 40, maxMinutes = 60) =>

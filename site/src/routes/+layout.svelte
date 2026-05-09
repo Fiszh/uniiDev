@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MetaTags } from "svelte-meta-tags";
-  import { disable_root, site_title, TopBar } from "../stores/global";
+  import { API_URL, disable_root, site_title, TopBar } from "../stores/global";
 
   const site_icon = "https://cdn.unii.dev/favicon.png";
 
@@ -32,7 +32,7 @@
   }
 
   onMount(async () => {
-    const api_status = await fetch("http://api.localhost:3000/status");
+    const api_status = await fetch(`${API_URL}/status`);
 
     const status_data = await api_status.json();
 

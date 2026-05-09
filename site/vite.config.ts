@@ -6,4 +6,9 @@ export default defineConfig({
   server: {
     allowedHosts: [".unii.dev", "unii.dev"],
   },
+  define: {
+    "import.meta.env.API_URL": JSON.stringify(
+      process.env.API_URL ?? "https://api.unii.dev",
+    ),
+  },
 });

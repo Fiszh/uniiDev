@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { site_title, TopBar } from "../../../stores/global";
+  import { API_URL, site_title, TopBar } from "../../../stores/global";
 
   import * as chatStats from "$lib/chatStats";
 
@@ -92,7 +92,7 @@
 
         if (json == "range") {
           const v4_res = await fetch(
-            `https://api.unii.dev/v4/${channel}/${window.location.search}&token=Bearer ${getCookie("twitchToken")}`,
+            `${API_URL}/v4/${channel}/${window.location.search}&token=Bearer ${getCookie("twitchToken")}`,
           );
 
           if (v4_res.ok) {

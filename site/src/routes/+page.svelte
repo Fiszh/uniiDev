@@ -1,7 +1,7 @@
 <script>
   import { Heart } from "@lucide/svelte";
   import LinkButton from "../components/StretchButton.svelte";
-  import { site_title } from "../stores/global";
+  import { API_URL, site_title } from "../stores/global";
 
   const site_links = [
     {
@@ -11,7 +11,7 @@
     { title: "Chat Stats", link: "/chatStats/" },
     {
       title: "Unofficial 7TV API documentation (docs proxy)",
-      link: "https://api.unii.dev/seventv",
+      link: `${API_URL}/seventv`,
     },
   ];
 
@@ -63,7 +63,7 @@
   </p>
   <p>
     Reach me via <a
-      href="https://api.unii.dev/twitch/528761326"
+      href="{API_URL}/twitch/528761326"
       target="_blank"
       rel="noopener noreferrer nofollow">Twitch whispers</a
     >
@@ -91,7 +91,7 @@
   {/each}
 </nav>
 <a
-  href="https://api.unii.dev/docs/"
+  href="{API_URL}/docs/"
   target="_blank"
   rel="noopener noreferrer"
   class="hidden"
