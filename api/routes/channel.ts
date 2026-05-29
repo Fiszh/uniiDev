@@ -91,9 +91,13 @@ RequestRouter.add("GET", "/", async (req, res) => {
       5000,
     );
 
-  if (cached) {
-    cache.delete(cacheKey);
-    return res.status(200).json(cached.data);
+  
+  if (cached && !noCache) {
+    if (cached.expires < Date.now()) {
+      cache.delete(cacheKey);
+    } else {
+      return res.status(200).json(cached.data);
+    }
   }
 
   const GQLbody = {
