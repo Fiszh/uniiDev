@@ -147,7 +147,7 @@ Bun.serve({
       return limiterResponse;
     }
 
-    if (host.startsWith("api.localhost") || host.startsWith("api.unii.dev")) {
+    if (host.startsWith("api.localhost") || host.startsWith("localhost") || host.startsWith("api.unii.dev")) {
       let res = new Response();
 
       res = setSecurityHeaders(res) as Response;
@@ -237,7 +237,7 @@ Bun.serve({
 
           if (isFile) return new Response(Bun.file(file_path).stream());
         }
-      } catch {}
+      } catch { }
     }
 
     return CreateErrorResponse("Route not found!", 404);
@@ -246,3 +246,5 @@ Bun.serve({
 
 if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
 generateGuessrRounds();
+
+console.log("Ready! Server running at http://localhost:3000");

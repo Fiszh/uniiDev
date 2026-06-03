@@ -9,8 +9,10 @@ import fs from "fs";
 import path from "path";
 
 interface StatusJSON {
-  message: string;
-  color: string;
+  type: "issues" | "outage" | "annoucement" | "resolved" | "fail" | "";
+  message?: string;
+  href?: string;
+  since: number;
   till: number;
 }
 
@@ -24,10 +26,12 @@ if (!fs.existsSync(file_path))
     file_path,
     JSON.stringify(
       {
+        type: "",
         message: "",
-        color: "",
+        href: "",
+        since: 0,
         till: 0,
-      },
+      } as StatusJSON,
       null,
       2,
     ),
@@ -53,51 +57,52 @@ function getStatus(
   return JSON.parse(fs.readFileSync(file_path, "utf-8")) as StatusJSON;
 }
 
-RequestRouter.add("POST", "/", async (req, res) => {
-  const token_header = req.headers.get("x-auth-token");
-  const message = (req.headers.get("message") as string) || null;
+// RequestRouter.add("POST", "/", async (req, res) => {
+//   const token_header = req.headers.get("x-auth-token");
+//   const message = (req.headers.get("message") as string) || null;
 
-  if (!token_header)
-    return res.status(400).json({
-      error: "Bad Request",
-      status: 400,
-      message: "Missing x-auth-token header",
-    });
+//   if (!token_header)
+//     return res.status(400).json({
+//       error: "Bad Request",
+//       status: 400,
+//       message: "Missing x-auth-token header",
+//     });
 
-  if (!message)
-    return res.status(400).json({
-      error: "Bad Request",
-      status: 400,
-      message: "Missing message header",
-    });
+//   if (!message)
+//     return res.status(400).json({
+//       error: "Bad Request",
+//       status: 400,
+//       message: "Missing message header",
+//     });
 
-  const user_info = await validate(token_header);
+//   const user_info = await validate(token_header);
 
-  if (!user_info || "error" in user_info)
-    return res
-      .status(401)
-      .json({ error: true, message: "Failed to validate your token!" });
+//   if (!user_info || "error" in user_info)
+//     return res
+//       .status(401)
+//       .json({ error: true, message: "Failed to validate your token!" });
 
-  if (admins.includes(user_info["user_id"])) {
-    const status_message: StatusJSON = {
-      message,
-      color: (req.headers.get("color") as string) || "#FFFFFF",
-      till: Number(req.headers.get("till") as string) || Date.now(),
-    };
+//   if (admins.includes(user_info["user_id"])) {
+//     const status_message: StatusJSON = {
+//       type,
+//       message,
+//       till: Number(req.headers.get("till") as string) || Date.now(),
+//       since: Date.now(),
+//     };
 
-    getStatus(
-      status_message.message,
-      status_message.color,
-      status_message.till,
-    );
+//     getStatus(
+//       status_message.message,
+//       status_message.color,
+//       status_message.till,
+//     );
 
-    return res.status(200).json({ error: false, message: "Message set!" });
-  } else {
-    return res
-      .status(401)
-      .json({ error: true, message: "Token is not valid." });
-  }
-});
+//     return res.status(200).json({ error: false, message: "Message set!" });
+//   } else {
+//     return res
+//       .status(401)
+//       .json({ error: true, message: "Token is not valid." });
+//   }
+// });
 
 RequestRouter.add("GET", "/", async (req, res) => {
   const status_message = getStatus();
