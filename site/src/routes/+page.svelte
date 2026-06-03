@@ -1,117 +1,157 @@
-<script>
-  import { Heart } from "@lucide/svelte";
-  import LinkButton from "../components/StretchButton.svelte";
+<script lang="ts">
+  import { ArrowRight, Heart } from "@lucide/svelte";
   import { API_URL, site_title } from "../stores/global";
+  import Button from "../components/Button.svelte";
+  import Section from "../components/landing/Section.svelte";
+  import Project from "../components/landing/Project.svelte";
+  import Repo from "../components/landing/Repo.svelte";
 
-  const site_links = [
+  interface ProjectLinks {
+    title: string;
+    description: string;
+    href: string;
+    tags?: string[];
+  }
+
+  const projectLinks: ProjectLinks[] = [
     {
-      title: "Configure the Chat Overlay (UChat)",
-      link: "https://chat.unii.dev/",
+      title: "UChat",
+      description: "Twitch chat overlay for streamers",
+      href: "https://chat.unii.dev/",
+      tags: ["Twitch", "7TV", "BTTV", "FFZ"],
     },
-    { title: "Cop Slop Title Guessr", link: "/guessr/" },
-    { title: "Chat Stats", link: "/chatStats/" },
+    {
+      title: "Cop Slop Title Guessr",
+      description: "YouTube thumbnail title guessing game",
+      href: "/guessr/",
+      tags: ["YouTube", "Daily Game"],
+    },
+    {
+      title: "Chat Stats",
+      description: "Twitch chat statistics viewer",
+      href: "/chatStats/",
+      tags: ["Charts", "Analytics"],
+    },
     {
       title: "Unofficial 7TV API documentation (docs proxy)",
-      link: `${API_URL}/seventv`,
+      description: "Unofficial 7TV API documentation proxy",
+      href: `${API_URL}/seventv`,
+      tags: ["7TV", "API", "Docs", "Proxy"],
     },
   ];
 
-  const repo_links = [
+  interface RepoLinks {
+    title: string;
+    description: string;
+    href: string;
+  }
+
+  const repoLinks: RepoLinks[] = [
     {
-      title: "This Website",
-      link: "https://github.com/Fiszh/uniiDev",
+      title: "unii.dev",
+      description: "This Website",
+      href: "https://github.com/Fiszh/uniiDev",
     },
     {
-      title: "UChat (Chat Overlay)",
-      link: "https://github.com/Fiszh/UChat",
+      title: "UChat",
+      description: "Chat Overlay",
+      href: "https://github.com/Fiszh/UChat",
     },
     {
-      title: "YAUTC (Custom Twitch)",
-      link: "https://github.com/Fiszh/YAUTC",
+      title: "YAUTC",
+      description: "Custom Twitch",
+      href: "https://github.com/Fiszh/YAUTC",
     },
     {
       title: "7TVPaintsViewer",
-      link: "https://github.com/Fiszh/7TVPaintsViewer",
+      description: "7TV Paint Viewer (Archived)",
+      href: "https://github.com/Fiszh/7TVPaintsViewer",
     },
   ];
 
   site_title.set("Home");
 </script>
 
-<section id="about_me">
-  <h2>About me</h2>
-  <p>Hi! I'm a self-taught coder using TypeScript, Svelte, SCSS and Bun.</p>
-  <p>
-    Working on a <a
-      href="https://chat.unii.dev/"
-      target="_blank"
-      rel="noopener noreferrer">chat overlay for Twitch</a
-    >.
-  </p>
-  <p>
-    Started with Roblox Lua, then learned JavaScript for a <a
-      href="https://fiszh.github.io/YAUTC/"
-      target="_blank"
-      rel="noopener noreferrer">small project</a
-    >.
-  </p>
-  <p>
-    Almost everything I make is open source on my <a
-      href="https://github.com/Fiszh"
-      target="_blank"
-      rel="noopener noreferrer">GitHub</a
-    >.
-  </p>
-  <p>
-    Reach me via <a
-      href="{API_URL}/twitch/528761326"
-      target="_blank"
-      rel="noopener noreferrer nofollow">Twitch whispers</a
-    >
-    or
-    <a
-      href="https://discord.com/users/703639905691238490"
-      target="_blank"
-      rel="noopener noreferrer nofollow">Discord</a
-    >.
-  </p>
-  <p id="heart">
-    <a
-      href="https://buymeacoffee.com/jzlnkf5qgo"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <Heart fill="red" color="red" size="4rem" />
-    </a>
-  </p>
-</section>
+<aside id="hero">
+  <p id="hero-label">uniiDev</p>
+  <img id="hero-logo" src="https://cdn.unii.dev/logo.avif" alt="uniiDev Logo" />
+  <section id="hero-dsc">
+    <p>
+      Self-taught coder specializing in TypeScript, Svelte, and Bun. Working on
+      tools for the Twitch streamers. Almost everything is open source.
+    </p>
+    <p>
+      Reach me via <a
+        href="{API_URL}/twitch/528761326"
+        target="_blank"
+        rel="noopener noreferrer nofollow">Twitch whispers</a
+      >
+      or
+      <a
+        href="https://discord.com/users/703639905691238490"
+        target="_blank"
+        rel="noopener noreferrer nofollow">Discord</a
+      >.
+    </p>
+  </section>
+  <section id="hero-buttons">
+    <Button primary href={"https://chat.unii.dev/"} target="_blank">
+      Configure UChat
+      {#snippet iconRight()}
+        <ArrowRight size="1rem" />
+      {/snippet}
+    </Button>
+    <Button danger href={"https://buymeacoffee.com/jzlnkf5qgo"} target="_blank">
+      {#snippet icon()}
+        <Heart fill="currentColor" size="1rem" />
+      {/snippet}
+      Support
+    </Button>
+    <Button secondary>GitHub</Button>
+  </section>
+</aside>
 
-<nav aria-label="Site Links">
-  {#each site_links as link}
-    <LinkButton button={link} />
+<Section index={1} title={"Projects"}>
+  {#each projectLinks as project}
+    <Project {...project} />
   {/each}
-</nav>
-<a
-  href="{API_URL}/docs/"
-  target="_blank"
-  rel="noopener noreferrer"
-  class="hidden"
->
-  Also check out the API
-</a>
+</Section>
 
-<h2>GitHub Repos</h2>
-
-<nav aria-label="GitHub Repositories">
-  {#each repo_links as link}
-    <LinkButton button={link} />
-  {/each}
-</nav>
+<Section index={2} title={"Repos"}>
+  <div id="repos-layout">
+    {#each repoLinks as repo}
+      <Repo {...repo} />
+    {/each}
+  </div>
+</Section>
 
 <style lang="scss">
-  #about_me {
-    text-align: center;
-    font-size: 1.3rem;
+  #hero {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    max-width: 25rem;
+
+    img {
+      max-width: 15rem;
+    }
+
+    #hero-label,
+    #hero-dsc {
+      text-align: left;
+      font-size: 1rem;
+      color: #f0ede88c;
+
+      a {
+        color: rgba(122, 215, 215, 0.549);
+      }
+    }
+
+    #hero-buttons {
+      display: flex;
+      gap: 0.7rem;
+    }
   }
 
   nav {
@@ -121,20 +161,10 @@
     gap: 0.5rem;
   }
 
-  #heart {
-    font-size: 3rem;
-    display: flex;
-    justify-content: center;
-
-    a {
-      display: block;
-    }
-
-    &:hover {
-      color: rgb(255, 0, 0);
-      text-shadow: 0 0 5px rgb(255, 0, 0);
-      animation: heartbeat 0.6s infinite;
-    }
+  #repos-layout {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   a {

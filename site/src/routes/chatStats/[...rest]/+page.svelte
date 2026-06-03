@@ -13,6 +13,7 @@
 
   import { MinusIcon } from "@lucide/svelte";
   import { DateInput } from "date-picker-svelte";
+  import Button from "../../../components/Button.svelte";
 
   let startDate = $state(new Date());
   let endDate = $state(new Date());
@@ -226,43 +227,36 @@
 </p>
 
 {#if buttonsType == "channel"}
-  {#each jsonButtons as jsonButton}
-    <StretchButton
-      button={{
-        title: jsonButton.path,
-        link: window.location.href + "/" + jsonButton.path,
-        new_window: false,
-      }}
-    />
-  {/each}
-{:else if buttonsType == "json"}
-  <h2>Custom Date (streamer/mod only)</h2>
-  <section id="custom_date">
-    <DateInput bind:value={startDate} />
-    <MinusIcon size="2rem" />
-    <DateInput bind:value={endDate} />
+  <section id="buttons">
+    {#each jsonButtons as jsonButton}
+      <Button secondary href={window.location.href + "/" + jsonButton.path}>
+        {jsonButton.path}
+      </Button>
+    {/each}
   </section>
-  <StretchButton
-    button={{
-      title: "Check Stats",
-      link:
-        window.location.href +
+{:else if buttonsType == "json"}
+  <section id="buttons">
+    <h2>Custom Date (streamer/mod only)</h2>
+    <section id="custom_date">
+      <DateInput bind:value={startDate} />
+     -
+      <DateInput bind:value={endDate} />
+    </section>
+    <Button secondary
+      href={window.location.href +
         "/range" +
         `?start=${startDate.getDate()}-${startDate.getMonth() + 1}-${startDate.getFullYear()}` +
-        `&end=${endDate.getDate()}-${endDate.getMonth() + 1}-${endDate.getFullYear()}`,
-      new_window: false,
-    }}
-  />
-  <h3>Other</h3>
-  {#each dateButtons as dateButton}
-    <StretchButton
-      button={{
-        title: dateButton.title,
-        link: window.location.href + "/" + dateButton.path,
-        new_window: false,
-      }}
-    />
-  {/each}
+        `&end=${endDate.getDate()}-${endDate.getMonth() + 1}-${endDate.getFullYear()}`}
+    >
+      Check Custom Date
+    </Button>
+    <h3>Other</h3>
+    {#each dateButtons as dateButton}
+      <Button secondary href={window.location.href + "/" + dateButton.path}>
+        {dateButton.title}
+      </Button>
+    {/each}
+  </section>
 {:else if buttonsType == "stats"}
   {#if user_login}
     <p>{user_login + "'s stats"}</p>
@@ -314,6 +308,12 @@
     font-size: 1.5rem;
     font-weight: bold;
     display: inline-flex;
+  }
+
+  #buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   #row {
