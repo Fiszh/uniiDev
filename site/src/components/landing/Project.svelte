@@ -11,7 +11,7 @@
   const { title, description, href, tags = [] }: Props = $props();
 </script>
 
-<a {href} target="_blank">
+<a {href} target="_blank" class="noHover">
   <aside>
     <h2>{title}</h2>
     <p>{description}</p>

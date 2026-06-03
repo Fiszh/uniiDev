@@ -29,7 +29,7 @@
 </script>
 
 {#if href}
-  <a class="transition" {href} class:primary class:secondary class:danger {...restProps}>
+  <a class="transition noHover" {href} class:primary class:secondary class:danger {...restProps}>
     {@render icon?.()}
     {@render children?.()}
     {@render iconRight?.()}

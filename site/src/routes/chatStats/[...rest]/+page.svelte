@@ -14,6 +14,7 @@
   import { MinusIcon } from "@lucide/svelte";
   import { DateInput } from "date-picker-svelte";
   import Button from "../../../components/Button.svelte";
+  import Section from "../../../components/landing/Section.svelte";
 
   let startDate = $state(new Date());
   let endDate = $state(new Date());
@@ -235,14 +236,14 @@
     {/each}
   </section>
 {:else if buttonsType == "json"}
-  <section id="buttons">
-    <h2>Custom Date (streamer/mod only)</h2>
+  <Section index={0} title={"Custom Date"}>
     <section id="custom_date">
       <DateInput bind:value={startDate} />
-     -
+      -
       <DateInput bind:value={endDate} />
     </section>
-    <Button secondary
+    <Button
+      secondary
       href={window.location.href +
         "/range" +
         `?start=${startDate.getDate()}-${startDate.getMonth() + 1}-${startDate.getFullYear()}` +
@@ -250,13 +251,16 @@
     >
       Check Custom Date
     </Button>
-    <h3>Other</h3>
-    {#each dateButtons as dateButton}
-      <Button secondary href={window.location.href + "/" + dateButton.path}>
-        {dateButton.title}
-      </Button>
-    {/each}
-  </section>
+  </Section>
+  <Section index={1} title={"Date"}>
+    <section id="buttons">
+      {#each dateButtons as dateButton}
+        <Button secondary href={window.location.href + "/" + dateButton.path}>
+          {dateButton.title}
+        </Button>
+      {/each}
+    </section>
+  </Section>
 {:else if buttonsType == "stats"}
   {#if user_login}
     <p>{user_login + "'s stats"}</p>
@@ -298,10 +302,6 @@
   a {
     padding-block: 0.5rem;
     box-sizing: border-box;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   #segments {

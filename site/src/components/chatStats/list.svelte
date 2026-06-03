@@ -39,53 +39,119 @@
 </script>
 
 {#if data && data.length}
-  <Wrapper
-    {...restData}
-    bind:searchValue={searchQuery}
-    bind:reverseValue={reverseState}
-  >
+  <div id="top">
+    <aside>
+      Leaderboard <p id="label">{restData.name}</p>
+    </aside>
+
+    <input />
+  </div>
+  <ul>
     {#each reverseState ? [...filtered].reverse() : filtered as stat, i}
-      <ol
+      <li
         data-index={stat.index || i + 1}
         class:censored={blockedUsers.includes(
           typeof stat.name == "string" ? stat.name.toLowerCase() : "",
         )}
       >
-        <p>{stat.index || i + 1}.</p>
-        {#if stat["url"]}
-          <img
-            src={stat["url"]}
-            alt="icon"
-            loading="lazy"
-            class:untracked={stat["at"] == 0 && stat["count"] == 0}
-          />
-        {/if}
-        <p>
-          {stat.name}
-        </p>
-        <p>({stat.count.toLocaleString()})</p>
-      </ol>
+        <div id="censor" class="transition"></div>
+        <span id="stat-name">
+          <p id="stat-index">{stat.index || i + 1}</p>
+          {#if stat["url"]}
+            <img
+              src={stat["url"]}
+              alt="icon"
+              loading="lazy"
+              class:untracked={stat["at"] == 0 && stat["count"] == 0}
+            />
+          {/if}
+          <p id="name">{stat.name}</p>
+        </span>
+        <div id="progress-bar"><div id="bar"></div></div>
+        <p id="stat-count">{stat.count.toLocaleString()}</p>
+      </li>
+      <hr />
     {/each}
+  </ul>
 
-    {#if tracking_start}
-      <div id="tracking_start">
-        <p>Started tracking:</p>
-        <p>{tracking_start}</p>
-      </div>
-    {/if}
-  </Wrapper>
+  {#if tracking_start}
+    <div id="tracking_start">
+      <p>Started tracking:</p>
+      <p>{tracking_start}</p>
+    </div>
+  {/if}
 {/if}
 
 <style lang="scss">
-  ol {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
+  :global(*) {
+    //outline: 1px solid white;
+  }
+
+  #top {
+    display: inline-flex;
     width: 100%;
+    justify-content: space-between;
+    align-items: center;
+
+    & > * {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    aside {
+      gap: 1rem;
+
+      #label {
+        font-size: 0.6rem;
+        border: 1px solid #ffffff1a;
+        padding: 0.15rem 0.5rem;
+        border-radius: 1rem;
+        color: #f0ede859;
+      }
+    }
+  }
+
+  ul {
+    all: unset;
+    max-height: 15rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+
+    padding: 0.25rem 0.5rem;
+    box-sizing: border-box;
 
     img {
       max-height: 1.5rem;
     }
+
+    &.censored {
+      cursor: pointer;
+
+      #censor {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        background: black;
+        z-index: 10000000;
+        pointer-events: none;
+      }
+
+      &:hover #censor {
+        width: 0%;
+      }
+    }
+  }
+
+  hr {
+    width: 100%;
   }
 
   .untracked {
@@ -93,42 +159,70 @@
     border-radius: 0.2rem;
   }
 
-  .censored {
+  #stat-name {
+    width: 25%;
+    min-width: 25%;
+    display: inline-flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 0.25rem;
+
     cursor: pointer;
 
-    p {
-      color: black;
-      background-color: black;
-      padding: 0 2px;
+    &:hover {
+      width: max-content;
     }
-    &:hover p {
-      color: white;
-      background-color: transparent;
+
+    #name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
-  ol {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-
-    background: linear-gradient(to bottom right, #1a1d22, #0f1013);
+  #stat-count {
+    width: 10%;
+    text-align: right;
+    flex-shrink: 0;
+    color: #434241;
   }
 
-  ol[data-index="1"] {
-    background: linear-gradient(to bottom right, #facc15, #ca8a04);
-    box-shadow: 0 10px 15px -3px rgb(255 193 0 / 25%);
-    color: white;
+  #progress-bar {
+    width: 100%;
+    height: 0.25rem;
+    background: #ffffff0f;
+    border-radius: 0.1rem;
+    overflow: hidden;
+
+    #bar {
+      width: 50%;
+      height: 100%;
+    }
   }
 
-  ol[data-index="2"] {
-    background: linear-gradient(to bottom right, #d1d5db, #6b7280);
-    box-shadow: 0 10px 15px -3px rgba(156, 163, 175, 0.25);
-    color: white;
-  }
+  li {
+    --color: #434241;
 
-  ol[data-index="3"] {
-    background: linear-gradient(to bottom right, #f59e0b, #b45309);
-    box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.25);
-    color: white;
+    &[data-index="1"] {
+      --color: #facc15;
+    }
+
+    &[data-index="2"] {
+      --color: #d1d5db;
+    }
+
+    &[data-index="3"] {
+      --color: #f59e0b;
+    }
+
+    #bar {
+      background: var(--color);
+    }
+
+    #stat-index {
+      color: var(--color);
+    }
   }
 </style>

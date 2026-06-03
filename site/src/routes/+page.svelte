@@ -142,42 +142,19 @@
       text-align: left;
       font-size: 1rem;
       color: #f0ede88c;
-
-      a {
-        color: rgba(122, 215, 215, 0.549);
-      }
     }
 
     #hero-buttons {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.7rem;
     }
-  }
-
-  nav {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
   }
 
   #repos-layout {
     display: grid;
     gap: 0.7rem;
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  a {
-    color: rgb(203, 242, 255);
-
-    &:hover {
-      text-decoration: underline;
-    }
-
-    &.hidden {
-      color: rgba(255, 255, 255, 0.25);
-      font-size: 1rem;
-    }
   }
 
   @keyframes heartbeat {

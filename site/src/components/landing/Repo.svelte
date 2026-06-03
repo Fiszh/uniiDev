@@ -8,7 +8,7 @@
   const { title, description, href }: Props = $props();
 </script>
 
-<a {href} target="_blank" class="transition">
+<a {href} target="_blank" class="transition noHover">
   <h2>{title}</h2>
   <p>{description}</p>
 </a>

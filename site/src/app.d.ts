@@ -31,6 +31,14 @@ declare global {
     }
 
     type chatStatsData = listStatData | string | number | longestMessage;
+
+    type StatusMessage ={
+        type: "issues" | "outage" | "annoucement" | "resolved" | "fail";
+        message?: string;
+        href?: string;
+        since?: number;
+        till?: number;
+    }
 }
 
-export {};
+export { };

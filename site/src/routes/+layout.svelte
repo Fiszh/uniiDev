@@ -1,10 +1,8 @@
 <script lang="ts">
   import { MetaTags } from "svelte-meta-tags";
-  import { API_URL, disable_root, site_title, TopBar } from "../stores/global";
+  import { disable_root, site_title } from "../stores/global";
 
   const site_icon = "https://cdn.unii.dev/favicon.png";
-
-  import GitHubIcon from "$lib/assets/GitHub_Invertocat_White.svg";
 
   import { dev } from "$app/environment";
   import { onMount } from "svelte";
@@ -14,23 +12,14 @@
   let status_message = $state<null | string>();
   let mounted = $state<boolean>(false);
 
-  onMount(async () => {
-    mounted = true;
+  import "../reset.css";
+  import "../global.scss";
 
-    const api_status = await fetch(`${API_URL}/status`);
+  import Banner from "../components/Banner.svelte";
 
-    const status_data = await api_status.json();
+  onMount(() => (mounted = true));
 
-    if (status_data.message) {
-      const date_now = Date.now();
-
-      if (status_data.till >= date_now) {
-        status_message = status_data.message;
-      }
-    }
-  });
-
-  let { children } = $props();
+  let { data, children } = $props();
 </script>
 
 <svelte:head>
@@ -41,11 +30,17 @@
 </svelte:head>
 
 <MetaTags
-  title={$site_title || "unknown"}
+  title={$site_title || "Loading..."}
   titleTemplate="%s · uniiDev"
   description="Self-taught coder working with TypeScript, Bun, and open-source Twitch tools."
   canonical="https://unii.dev/"
 />
+
+{#if data.statusMessage == null}
+  <Banner type="fail"/>
+{:else if data.statusMessage}
+  <Banner {...data.statusMessage}/>
+{/if}
 
 {#if dev}
   <p id="dev-version">DEV VERSION</p>
@@ -60,10 +55,6 @@
 {:else}
   <main id="main">
     {#if !$disable_root}
-      <a href="https://github.com/Fiszh" id="GitHub">
-        <img src={GitHubIcon} alt="GitHub" />
-      </a>
-
       <Topbar />
 
       {#if status_message}
@@ -86,6 +77,12 @@
 
       width: 100%;
       height: 100%;
+
+      height: 100vh;
+      width: 100vw;
+
+      height: 100dvh;
+      width: 100dvw;
 
       background: #0a0a0a;
 
