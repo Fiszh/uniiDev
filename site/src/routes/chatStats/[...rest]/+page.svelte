@@ -263,30 +263,33 @@
   </Section>
 {:else if buttonsType == "stats"}
   {#if user_login}
-    <p>{user_login + "'s stats"}</p>
-    <section id="row">
-      {#each statsForUser as stat}
-        <NumberStat {stat} />
-      {/each}
-    </section>
+    <Section index={1} title={user_login + "'s stats"}>
+      <section id="row">
+        {#each statsForUser as stat}
+          <NumberStat {stat} />
+        {/each}
+      </section>
+    </Section>
   {/if}
 
-  <section id="row">
-    {#each Object.entries(rowData["number"]) as [key, value]}
-      <NumberStat stat={{ name: key, data: value }} />
-    {/each}
-  </section>
-
-  {#each Object.values(rowData["list"]) as lists}
+  <Section index={1} title={"Channel Stats"}>
     <section id="row">
-      {#each lists as list}
-        <List
-          name={list.stat_name}
-          data={list.data.sort((a, b) => b.count - a.count)}
-        />
+      {#each Object.entries(rowData["number"]) as [key, value]}
+        <NumberStat stat={{ name: key, data: value }} />
       {/each}
     </section>
-  {/each}
+
+    {#each Object.values(rowData["list"]) as lists}
+      <section id="row">
+        {#each lists as list}
+          <List
+            name={list.stat_name}
+            data={list.data.sort((a, b) => b.count - a.count)}
+          />
+        {/each}
+      </section>
+    {/each}
+  </Section>
 
   <a href="https://chat.unii.dev" target="_blank">Check out UChat</a>
 {:else}
@@ -295,7 +298,7 @@
 
 <style lang="scss">
   :root {
-    --date-picker-background: #0d0e11;
+    --date-picker-background: #141414;
     --date-picker-foreground: #f7f7f7;
   }
 

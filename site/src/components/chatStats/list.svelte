@@ -1,5 +1,9 @@
 <script lang="ts">
-  import Wrapper, { type Stat } from "./wrapper.svelte";
+  import { onMount } from "svelte";
+  import { type Stat } from "./wrapper.svelte";
+  import Input from "../Input.svelte";
+  import Checkbox from "../Checkbox.svelte";
+  import { ListEnd } from "@lucide/svelte";
 
   interface ListStat extends Stat {
     data: Record<string, any>[];
@@ -11,12 +15,19 @@
 
   let { data, tracking_start = "", ...restData }: ListStat = $props();
 
+  let topCount = $state<number>(0);
+
+  onMount(() => (topCount = data[0].count));
+
   interface listDataIndexed extends listData {
     index: number;
   }
 
   function searchFilter(listData: ListStat["data"], query: string) {
-    if (!query.length) return listData;
+    if (!query.length)
+      return listData
+        .map((item, index) => ({ ...item, index: index + 1 }))
+        .filter(Boolean);
 
     const exactMatch = /".+?"/g.test(query);
 
@@ -44,7 +55,14 @@
       Leaderboard <p id="label">{restData.name}</p>
     </aside>
 
-    <input />
+    {#snippet icon()}
+      <ListEnd size="1rem" />
+    {/snippet}
+
+    <div>
+      <Checkbox bind:checked={reverseState} {icon} title={"Reverse"} />
+      <Input placeholder={"Name..."} bind:value={searchQuery} />
+    </div>
   </div>
   <ul>
     {#each reverseState ? [...filtered].reverse() : filtered as stat, i}
@@ -67,7 +85,9 @@
           {/if}
           <p id="name">{stat.name}</p>
         </span>
-        <div id="progress-bar"><div id="bar"></div></div>
+        <div id="progress-bar">
+          <div id="bar" style="width: {(stat.count / topCount) * 100}%"></div>
+        </div>
         <p id="stat-count">{stat.count.toLocaleString()}</p>
       </li>
       <hr />
@@ -83,10 +103,6 @@
 {/if}
 
 <style lang="scss">
-  :global(*) {
-    //outline: 1px solid white;
-  }
-
   #top {
     display: inline-flex;
     width: 100%;
@@ -96,6 +112,10 @@
     & > * {
       display: inline-flex;
       align-items: center;
+    }
+
+    div {
+      gap: 0.5rem;
     }
 
     aside {
@@ -117,6 +137,10 @@
     overflow-x: hidden;
     overflow-y: auto;
     width: 100%;
+
+    &::-webkit-scrollbar {
+      width: 0.5rem;
+    }
   }
 
   li {
@@ -197,7 +221,6 @@
     overflow: hidden;
 
     #bar {
-      width: 50%;
       height: 100%;
     }
   }

@@ -36,10 +36,12 @@
   canonical="https://unii.dev/"
 />
 
-{#if data.statusMessage == null}
-  <Banner type="fail"/>
-{:else if data.statusMessage}
-  <Banner {...data.statusMessage}/>
+{#if mounted}
+  {#if data.statusMessage == null}
+    <Banner type="fail" />
+  {:else if data.statusMessage && (data.statusMessage.type || data.statusMessage.message)}
+    <Banner {...data.statusMessage} />
+  {/if}
 {/if}
 
 {#if dev}

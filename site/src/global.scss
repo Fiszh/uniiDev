@@ -33,6 +33,12 @@ body {
 
     height: 100dvh;
     width: 100dvw;
+
+    &.outline {
+        :global(*) {
+            outline: 1px solid white;
+        }
+    }
 }
 
 *::-webkit-scrollbar {

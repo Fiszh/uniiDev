@@ -7,14 +7,20 @@
     Wrench,
   } from "@lucide/svelte";
 
-  const { type = "fail", message, href, since = 1, till }: StatusMessage = $props();
+  const {
+    type = "fail",
+    message,
+    href,
+    since = 1,
+    till,
+  }: StatusMessage = $props();
 
   const messages = {
     issues: "We're having issues - some features may be unavailable",
     outage: "We're experiencing a major outage - working on it",
     annoucement: "",
     resolved: "Issues have been resolved!",
-    fail: "Unable to fetch status info",
+    fail: "Unable to fetch status info. Please click here to view our status page.",
   };
 </script>
 
@@ -30,8 +36,8 @@
   {/if}
 {/snippet}
 
-{#if !href}
-  <div id="banner" class={type}>
+{#if !href && type != "fail"}
+  <div id="banner" class={type} class:annoucement={!type && message}>
     {@render icon(type)}
     {#if !message && type in messages}
       {messages[type]}
@@ -40,7 +46,13 @@
     {/if}
   </div>
 {:else}
-  <a id="banner" {href} target="_blank" class="link annoucement">
+  <a
+    id="banner"
+    href={href ? href : "https://status.unii.dev/"}
+    target="_blank"
+    class="link {type}"
+    class:annoucement={!type && message}
+  >
     {@render icon(type)}
     {#if !message && type in messages}
       {messages[type]}
@@ -62,12 +74,12 @@
     gap: 0.5rem;
     background: var(--background);
 
-    &.issues {
-      --background: #e48e24;
-    }
-
     &.outage {
       --background: #cb1d1d;
+    }
+
+    &.issues {
+      --background: #e48e24;
     }
 
     &.annoucement {
