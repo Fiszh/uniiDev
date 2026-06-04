@@ -224,10 +224,6 @@
 
   a {
     color: rgb(106, 164, 211);
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   #guessr {

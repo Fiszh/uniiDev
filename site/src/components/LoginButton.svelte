@@ -4,11 +4,16 @@
   import TwitchIcon from "$lib/assets/glitch_flat_white.svg";
 
   import { delCookie, getCookie, setCookie } from "$lib/cookie";
+  import Button from "./Button.svelte";
 
-  export let onToken: (token: string) => void;
-  export let onLogOut: () => void;
+  let hasToken = $state<string | null>(null);
 
-  let hasToken: string | null = null;
+  type Props = {
+    onToken: (token: string) => void;
+    onLogOut: () => void;
+  };
+
+  const { onToken, onLogOut }: Props = $props();
 
   onMount(() => {
     hasToken = getCookie("twitchToken") as string;
@@ -55,59 +60,10 @@
   });
 </script>
 
-<button id="login-button" aria-label="Login" on:click={openTwitchPopup}
-  >{#if hasToken}
-    <img src={TwitchIcon} alt="Twitch" />
+<Button primary aria-label="Login" onclick={openTwitchPopup}>
+  {#if hasToken}
     Logout
   {:else}
-    <img src={TwitchIcon} alt="Twitch" />
-    Twitch Login
-  {/if}</button
->
-
-<style lang="scss">
-  @use "sass:color";
-
-  button {
-    $background: #141414;
-    $accent: #ffffff1b;
-
-    all: unset;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-
-    padding: 0.55rem 0.9rem;
-    box-sizing: border-box;
-
-    background: $background;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.6rem;
-
-    font-weight: 600;
-
-    transition: all 0.05s ease;
-
-    &:hover {
-      border-color: $accent;
-
-      transform: translateY(-1px);
-
-      box-shadow:
-        0 6px 18px rgba(255, 255, 255, 0.005),
-        0 0 12px $accent;
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    img {
-      height: 2rem;
-      width: auto;
-      aspect-ratio: 1/1;
-    }
-  }
-</style>
+    Login
+  {/if}
+</Button>

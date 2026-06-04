@@ -13,6 +13,8 @@
 
   import { MinusIcon } from "@lucide/svelte";
   import { DateInput } from "date-picker-svelte";
+  import Button from "../../../components/Button.svelte";
+  import Section from "../../../components/landing/Section.svelte";
 
   let startDate = $state(new Date());
   let endDate = $state(new Date());
@@ -226,69 +228,68 @@
 </p>
 
 {#if buttonsType == "channel"}
-  {#each jsonButtons as jsonButton}
-    <StretchButton
-      button={{
-        title: jsonButton.path,
-        link: window.location.href + "/" + jsonButton.path,
-        new_window: false,
-      }}
-    />
-  {/each}
-{:else if buttonsType == "json"}
-  <h2>Custom Date (streamer/mod only)</h2>
-  <section id="custom_date">
-    <DateInput bind:value={startDate} />
-    <MinusIcon size="2rem" />
-    <DateInput bind:value={endDate} />
-  </section>
-  <StretchButton
-    button={{
-      title: "Check Stats",
-      link:
-        window.location.href +
-        "/range" +
-        `?start=${startDate.getDate()}-${startDate.getMonth() + 1}-${startDate.getFullYear()}` +
-        `&end=${endDate.getDate()}-${endDate.getMonth() + 1}-${endDate.getFullYear()}`,
-      new_window: false,
-    }}
-  />
-  <h3>Other</h3>
-  {#each dateButtons as dateButton}
-    <StretchButton
-      button={{
-        title: dateButton.title,
-        link: window.location.href + "/" + dateButton.path,
-        new_window: false,
-      }}
-    />
-  {/each}
-{:else if buttonsType == "stats"}
-  {#if user_login}
-    <p>{user_login + "'s stats"}</p>
-    <section id="row">
-      {#each statsForUser as stat}
-        <NumberStat {stat} />
-      {/each}
-    </section>
-  {/if}
-
-  <section id="row">
-    {#each Object.entries(rowData["number"]) as [key, value]}
-      <NumberStat stat={{ name: key, data: value }} />
+  <section id="buttons">
+    {#each jsonButtons as jsonButton}
+      <Button secondary href={window.location.href + "/" + jsonButton.path}>
+        {jsonButton.path}
+      </Button>
     {/each}
   </section>
-
-  {#each Object.values(rowData["list"]) as lists}
-    <section id="row">
-      {#each lists as list}
-        <List
-          name={list.stat_name}
-          data={list.data.sort((a, b) => b.count - a.count)}
-        />
+{:else if buttonsType == "json"}
+  <Section index={0} title={"Custom Date"}>
+    <section id="custom_date">
+      <DateInput bind:value={startDate} />
+      -
+      <DateInput bind:value={endDate} />
+    </section>
+    <Button
+      secondary
+      href={window.location.href +
+        "/range" +
+        `?start=${startDate.getDate()}-${startDate.getMonth() + 1}-${startDate.getFullYear()}` +
+        `&end=${endDate.getDate()}-${endDate.getMonth() + 1}-${endDate.getFullYear()}`}
+    >
+      Check Custom Date
+    </Button>
+  </Section>
+  <Section index={1} title={"Date"}>
+    <section id="buttons">
+      {#each dateButtons as dateButton}
+        <Button secondary href={window.location.href + "/" + dateButton.path}>
+          {dateButton.title}
+        </Button>
       {/each}
     </section>
-  {/each}
+  </Section>
+{:else if buttonsType == "stats"}
+  {#if user_login}
+    <Section index={1} title={user_login + "'s stats"}>
+      <section id="row">
+        {#each statsForUser as stat}
+          <NumberStat {stat} />
+        {/each}
+      </section>
+    </Section>
+  {/if}
+
+  <Section index={1} title={"Channel Stats"}>
+    <section id="row">
+      {#each Object.entries(rowData["number"]) as [key, value]}
+        <NumberStat stat={{ name: key, data: value }} />
+      {/each}
+    </section>
+
+    {#each Object.values(rowData["list"]) as lists}
+      <section id="row">
+        {#each lists as list}
+          <List
+            name={list.stat_name}
+            data={list.data.sort((a, b) => b.count - a.count)}
+          />
+        {/each}
+      </section>
+    {/each}
+  </Section>
 
   <a href="https://chat.unii.dev" target="_blank">Check out UChat</a>
 {:else}
@@ -297,23 +298,25 @@
 
 <style lang="scss">
   :root {
-    --date-picker-background: #0d0e11;
+    --date-picker-background: #141414;
     --date-picker-foreground: #f7f7f7;
   }
 
   a {
     padding-block: 0.5rem;
     box-sizing: border-box;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   #segments {
     font-size: 1.5rem;
     font-weight: bold;
     display: inline-flex;
+  }
+
+  #buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   #row {

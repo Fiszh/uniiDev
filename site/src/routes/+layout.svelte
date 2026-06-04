@@ -1,51 +1,25 @@
 <script lang="ts">
   import { MetaTags } from "svelte-meta-tags";
-  import { API_URL, disable_root, site_title, TopBar } from "../stores/global";
+  import { disable_root, site_title } from "../stores/global";
 
   const site_icon = "https://cdn.unii.dev/favicon.png";
 
-  import GitHubIcon from "$lib/assets/GitHub_Invertocat_White.svg";
-  import LoginButton from "../components/LoginButton.svelte";
-
-  import { validateToken } from "$lib/twitch";
-
   import { dev } from "$app/environment";
-  import { delCookie, setCookie } from "$lib/cookie";
   import { onMount } from "svelte";
+  import Topbar from "../components/topbar.svelte";
+  import Footer from "../components/Footer.svelte";
 
   let status_message = $state<null | string>();
+  let mounted = $state<boolean>(false);
 
-  async function handleToken(token: string) {
-    const validated = await validateToken(token);
+  import "../reset.css";
+  import "../global.scss";
 
-    if (validated) {
-      setCookie("login", validated.login, 1);
-      setCookie("client_id", validated.client_id, 1);
-    }
-  }
+  import Banner from "../components/Banner.svelte";
 
-  function logOut() {
-    console.log("log out");
+  onMount(() => (mounted = true));
 
-    delCookie("login");
-    delCookie("client_id");
-  }
-
-  onMount(async () => {
-    const api_status = await fetch(`${API_URL}/status`);
-
-    const status_data = await api_status.json();
-
-    if (status_data.message) {
-      const date_now = Date.now();
-
-      if (status_data.till >= date_now) {
-        status_message = status_data.message;
-      }
-    }
-  });
-
-  let { children } = $props();
+  let { data, children } = $props();
 </script>
 
 <svelte:head>
@@ -56,88 +30,73 @@
 </svelte:head>
 
 <MetaTags
-  title={$site_title || "unknown"}
+  title={$site_title || "Loading..."}
   titleTemplate="%s · uniiDev"
   description="Self-taught coder working with TypeScript, Bun, and open-source Twitch tools."
   canonical="https://unii.dev/"
 />
 
+{#if mounted}
+  {#if data.statusMessage == null}
+    <Banner type="fail" />
+  {:else if data.statusMessage && (data.statusMessage.type || data.statusMessage.message)}
+    <Banner {...data.statusMessage} />
+  {/if}
+{/if}
+
 {#if dev}
   <p id="dev-version">DEV VERSION</p>
 {/if}
 
-{#if !$disable_root}
-  <a href="https://github.com/Fiszh" id="GitHub">
-    <img src={GitHubIcon} alt="GitHub" />
-  </a>
+<div class="noise background"></div>
+<div class="grid-lines background"></div>
+<div class="accent-blob background"></div>
 
-  <topbar>
-    <main>
-      <div id="logo">
-        <img src="https://cdn.unii.dev/logo.avif" alt="uniiDev Logo" />
-      </div>
-      {$site_title}
-    </main>
+{#if !mounted}
+  Loading...
+{:else}
+  <main id="main">
+    {#if !$disable_root}
+      <Topbar />
 
-    {#if $TopBar.login}
-      <LoginButton onToken={handleToken} onLogOut={logOut} />
+      {#if status_message}
+        <section id="status">{status_message}</section>
+      {/if}
     {/if}
-  </topbar>
-  {#if status_message}
-    <section id="status">{status_message}</section>
-  {/if}
-{/if}
 
-<main id="main">
-  {@render children()}
-</main>
+    {@render children()}
+
+    {#if !$disable_root}
+      <Footer />
+    {/if}
+  </main>
+{/if}
 
 {#if !$disable_root}
   <style lang="scss">
     #main {
+      font-family: "BLMelody", "Amiri", sans-serif, "Noto Color Emoji";
+
       width: 100%;
       height: 100%;
+
+      height: 100vh;
+      width: 100vw;
+
+      height: 100dvh;
+      width: 100dvw;
+
+      background: #0a0a0a;
+
+      padding: 0.5rem 21.5rem;
+
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: var(--main-gap);
+
+      gap: 4rem;
+
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 1rem;
-    }
-
-    topbar {
-      padding: 0.8rem 1.2rem;
-      box-sizing: border-box;
-
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
-
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-
-      &:has(> *:nth-child(1)) {
-        justify-content: space-between;
-      }
-
-      main {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      #logo {
-        max-width: 7rem;
-      }
     }
 
     #GitHub {
@@ -152,17 +111,56 @@
         object-fit: contain;
       }
     }
+
+    @media (max-width: 768px) {
+      #main {
+        padding: 0.5rem 1rem;
+      }
+
+      #GitHub {
+        display: none;
+      }
+    }
   </style>
 {/if}
 
 <style lang="scss">
+  .background {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .noise {
+    background-image: url("/noise.svg");
+    opacity: 0.035;
+  }
+
+  .grid-lines {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+  }
+
+  .accent-blob {
+    inset: unset;
+    width: 35rem;
+    height: 35rem;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 70%
+    );
+    top: -50dvh;
+    right: -25dvw;
+  }
+
   #dev-version {
     position: absolute;
     bottom: 1rem;
     left: 1rem;
-    background-color: rgba(0, 0, 0, 0.85);
-    border-radius: 25rem;
-    padding: 0.25rem 1rem;
     z-index: 1000000000;
     font-weight: bold;
   }
