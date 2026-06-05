@@ -110,11 +110,7 @@ export function setSecurityHeaders(res: Res | Response): Res | Response {
     "geolocation=(), microphone=(), camera=()",
   );
 
-  // Optional: Disable caching for sensitive endpoints
-  res.headers.set(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate",
-  );
+  res.headers.set("Cache-Control", "public, max-age=300, s-maxage=300");
 
   // Optional: Hide server info
   res.headers.set("Server", "");
