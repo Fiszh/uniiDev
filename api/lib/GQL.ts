@@ -30,7 +30,7 @@ export async function sendGQLRequest(GQLbody: Record<string, any>) {
     return {
       error: true,
       code: 500,
-      message: "Failed, no Client Version",
+      message: "Please wait, the server may have restarted. If the issue persists, contact support.",
     };
 
   Queries.headers["Client-Version"] = process.env.CLIENT_VERSION;

@@ -1,10 +1,10 @@
 import { queueMessage } from "$lib/discord";
 import { getQuery, sendGQLRequest } from "$lib/GQL";
-import router from "$lib/router";
+import router from "$lib/routerV2";
 import { read } from "$lib/userSettings";
 import { UChat_Testers } from "$store/globals";
 
-const RequestRouter = router();
+const RequestRouter = new router("channel");
 
 const name_query = getQuery("channel_login");
 const id_query = getQuery("channel_id");
@@ -15,6 +15,7 @@ const cache = new Map();
 const ttl = 60 * 1000;
 
 RequestRouter.add("GET", "/", async (req, res) => {
+  console.log("channel route hit");
   const referer = req.headers.get("referer") ?? "No referer";
   const ip = req.headers.get("x-forwarded-for");
   const overlayVersion = req.headers.get("version") ?? "Unknown";
@@ -28,6 +29,8 @@ RequestRouter.add("GET", "/", async (req, res) => {
   const channelName = req.query.get("name");
   const channelID = req.query.get("id");
   const noCache = req.query.get("noCache");
+
+  console.log(channelName, channelID, noCache, referer, ip, overlayVersion, agent);
 
   const webhookMessage = [
     {
@@ -91,7 +94,6 @@ RequestRouter.add("GET", "/", async (req, res) => {
       5000,
     );
 
-  
   if (cached && !noCache) {
     if (cached.expires < Date.now()) {
       cache.delete(cacheKey);
@@ -106,6 +108,8 @@ RequestRouter.add("GET", "/", async (req, res) => {
   };
 
   const GQL_request = await sendGQLRequest(GQLbody);
+
+  console.log("GQL_request", GQL_request);
 
   if ("error" in GQL_request) return res.status(500).json(GQL_request);
   if (!GQL_request.data.data.channel_info)

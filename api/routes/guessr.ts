@@ -3,9 +3,9 @@ import path from "path";
 
 const roundsJson = path.resolve("data", "guessr", "rounds.json");
 
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("guessr");
 
 interface Videos {
   thumbnail: string;

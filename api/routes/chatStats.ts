@@ -1,7 +1,7 @@
 import { getQuery, sendGQLRequest } from "$lib/GQL";
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("chatStats");
 
 const chatStats_query = getQuery("chat_stats");
 

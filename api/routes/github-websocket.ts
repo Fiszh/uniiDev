@@ -1,6 +1,6 @@
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("github-websocket");
 
 import crypto from "crypto";
 import { exec } from "child_process";

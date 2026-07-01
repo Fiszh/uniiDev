@@ -1,4 +1,4 @@
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
 import fs from "fs";
 import path from "path";
@@ -16,7 +16,7 @@ const tree: DirTreeNode = dirTree(path.resolve(".", "badges"), {
   extensions: /\./,
 });
 
-const RequestRouter = router();
+const RequestRouter = new router("badges");
 
 const CDN_URL = "https://cdn.unii.dev/";
 

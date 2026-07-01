@@ -2,6 +2,8 @@ import fs, { fsync } from "fs";
 import path from "path";
 import Fuse from "fuse.js";
 
+fs.mkdirSync(path.resolve(".", "data", "guessr"), { recursive: true });
+
 const videos = JSON.parse(
   fs.readFileSync(path.resolve(".", "data", "guessr", "videos.json"), "utf-8"),
 ) as Video[];

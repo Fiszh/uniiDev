@@ -1,6 +1,6 @@
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("v4");
 
 import { getModdedChannels, validateUser } from "$lib/twitch";
 
