@@ -1,11 +1,18 @@
-const route_regex = /^\/[a-zA-Z0-9-_:]*$/;
+import { RateLimiter } from "ts-rate-limiter";
+
+const route_regex = /^\/$|^\/(:?[a-zA-Z0-9_-]+)(\/:?[a-zA-Z0-9_-]+)*\/?$/;
+
+const limiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100,
+});
 
 globalThis.allowedOrigins = [
-  "http://localhost:5173",
-  "https://unii.dev",
-  "https://chat.unii.dev",
-  "https://api.unii.dev",
-  "https://dev.unii.dev",
+  "localhost:5173",
+  "unii.dev",
+  "chat.unii.dev",
+  "api.unii.dev",
+  "dev.unii.dev",
 ];
 
 type HTTPMethod =
@@ -47,14 +54,9 @@ interface Res {
   send: (body?: BodyInit | Response) => Response;
 }
 
-interface ResponseParams extends Response {
+interface reqParsed extends Request {
   params: Record<string, string>;
   query: URLSearchParams;
-}
-
-interface parsedRouteParam {
-  param: string;
-  index: number;
 }
 
 export default class Router {
@@ -158,7 +160,10 @@ export default class Router {
     const router_url = new URL(initReq.url);
     const route = router_url.pathname;
     const res = this.createRes();
-    const req = Object.assign(initReq, { query: new URLSearchParams() }) as Request & { query: URLSearchParams };
+    const req = Object.assign(initReq, {
+      query: new URLSearchParams(),
+      params: {},
+    }) as reqParsed;
 
     try {
       // CHECK FOR IP ADDRESS AND SET X-FORWARDED-FOR HEADER
@@ -187,33 +192,75 @@ export default class Router {
       if (!route_regex.test(route) || !this.routes[method])
         throw new Error(`Invalid route: ${route}`);
 
-      const routeHandler = this.routes[method].find((r) => r.route === route);
+      // HANDLE PARAMS
+      const routeSegments = route.split("/").filter(Boolean);
+      let routeHandler;
 
-      console.log(this.routes[method]);
+      for (const r of this.routes[method]) {
+        if (r.route === route) {
+          routeHandler = r;
+          break;
+        }
+
+        const handlerSegments = r.route.split("/").filter(Boolean);
+        if (handlerSegments.length !== routeSegments.length) continue;
+
+        const matched = handlerSegments.filter((seg) => seg.startsWith(":"));
+        if (matched) {
+          routeHandler = {
+            ...r,
+            params: handlerSegments.reduce<Record<string, string>>(
+              (acc, seg, index) => {
+                if (routeSegments[index] && seg.startsWith(":"))
+                  acc[seg.slice(1)] = routeSegments[index];
+
+                return acc;
+              },
+              {},
+            ),
+          };
+
+          break;
+        }
+      }
 
       if (!routeHandler)
         throw new Error(`${method} does not exist on ${route}`);
+
+      if ("params" in routeHandler) req.params = routeHandler.params;
 
       res.headers.set("Access-Control-Allow-Methods", method);
 
       // CHECK CORS SETTINGS
       const origin = req.headers.get("Origin");
       if (!origin) {
+        // NO ORIGIN HEADER, ALLOW ALL
         res.headers.set("Access-Control-Allow-Origin", "*");
-      } else if (origin && routeHandler.settings?.cors) {
-        if (typeof routeHandler.settings.cors === "boolean") {
-          if (routeHandler.settings.cors) {
-            res.headers.set("Access-Control-Allow-Origin", "*");
-          } else {
-            res.headers.set(
-              "Access-Control-Allow-Origin",
-              globalThis.allowedOrigins?.includes(origin) ? origin : "null",
-            );
-          }
-        } else if (routeHandler.settings.cors.includes(new URL(origin).host)) {
-          res.headers.set("Access-Control-Allow-Origin", origin);
-        }
+      } else if (
+        origin &&
+        typeof routeHandler.settings?.cors == "boolean" &&
+        !routeHandler.settings.cors
+      ) {
+        // ORIGIN HEADER PRESENT, CORS SETTINGS DISABLED
+        res.headers.set("Access-Control-Allow-Origin", "*");
+      } else if (
+        origin &&
+        Array.isArray(routeHandler.settings?.cors) &&
+        routeHandler.settings.cors.includes(new URL(origin).host)
+      ) { // ORIGIN HEADER PRESENT, CORS USE CUSTOM LIST
+        res.headers.set("Access-Control-Allow-Origin", origin);
+      } else { // ORIGIN HEADER PRESENT, NO CORS SETTINGS
+        res.headers.set(
+          "Access-Control-Allow-Origin",
+          globalThis.allowedOrigins?.includes(new URL(origin).host) ? origin : "null",
+        );
       }
+
+      console.log(
+        origin,
+        routeHandler.settings?.cors,
+        res.headers.get("Access-Control-Allow-Origin"),
+      );
 
       // HANDLE REQUEST
       if (routeHandler.func instanceof Function) {
@@ -238,7 +285,7 @@ export default class Router {
 
   handler<T>(
     route: string,
-    func: (req: ResponseParams, res: Res) => Promise<T>,
+    func: (req: reqParsed, res: Res) => Promise<T>,
     settings?: RouteHandler["settings"],
   ) {
     if (!route_regex.test(route)) throw new Error(`Invalid route: ${route}`);
@@ -248,7 +295,7 @@ export default class Router {
 
   add = (method: HTTPMethod, ...args: Parameters<typeof this.handler>) =>
     this.routes[method].push({
-      route: args[0] + this.routeName,
+      route: "/" + this.routeName + args[0],
       func: this.handler(...args),
       settings: args[2] as RouteHandler["settings"],
     });

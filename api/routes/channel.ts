@@ -30,8 +30,6 @@ RequestRouter.add("GET", "/", async (req, res) => {
   const channelID = req.query.get("id");
   const noCache = req.query.get("noCache");
 
-  console.log(channelName, channelID, noCache, referer, ip, overlayVersion, agent);
-
   const webhookMessage = [
     {
       name: "Channel",
@@ -108,8 +106,6 @@ RequestRouter.add("GET", "/", async (req, res) => {
   };
 
   const GQL_request = await sendGQLRequest(GQLbody);
-
-  console.log("GQL_request", GQL_request);
 
   if ("error" in GQL_request) return res.status(500).json(GQL_request);
   if (!GQL_request.data.data.channel_info)

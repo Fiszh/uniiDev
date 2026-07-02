@@ -6,7 +6,6 @@ import { Queries } from "$lib/GQL";
 
 import pkg from "./package.json";
 
-import { RateLimiter } from "ts-rate-limiter";
 import { queueMessage } from "$lib/discord";
 import { setSecurityHeaders } from "$lib/router";
 import { allowed_sites } from "$store/globals";
@@ -24,24 +23,28 @@ async function handleRoute(
   req: Request,
   found_route: string,
   method: HTTPMethod,
-  server: Bun.Server<undefined>
+  server: Bun.Server<undefined>,
 ) {
   const url = new URL(req.url);
 
   try {
-    const module = await import(path.resolve(routes_path, found_route));
+    const route_path = path.resolve(routes_path, found_route);
 
-    if (typeof module.default["exec"] === "function") {
-      const res = await module.default["exec"](req, server);
+    if (fs.existsSync(route_path)) {
+      const module = await import(route_path);
 
-      console.log(res);
+      if (
+        module &&
+        module.default &&
+        typeof module.default["exec"] === "function"
+      ) {
+        const res = await module.default["exec"](req, server);
 
-      if (res instanceof Response) return res;
-      return new Response(typeof res == "object" ? JSON.stringify(res) : res);
-    } else if (module.default[method].error) {
-      throw new Error(
-        `Router failed!\nRouter Error Type: ${module.default[method].type}`,
-      );
+        console.log(res);
+
+        if (res instanceof Response) return res;
+        return new Response(typeof res == "object" ? JSON.stringify(res) : res);
+      }
     }
 
     return CreateErrorResponse(
@@ -81,24 +84,55 @@ const welcomePage = `
         </html>
       `;
 
-const limiter = new RateLimiter({
-  windowMs: 60 * 1000, // 1 minute
-  maxRequests: 100,
-});
+/* 
+// TODO
+Add security headers
+Add rate limiting
+Add cdn
+*/
 
 Bun.serve({
   port: 3000,
   async fetch(req, server) {
+    const url = new URL(req.url);
+
+    if (url.pathname === "/")
+      return new Response(welcomePage, {
+        headers: {
+          "Content-Type": "text/html",
+        },
+      });
+
+    if (url.pathname == "/health") return new Response("OK", { status: 200 });
+
+    if (url.pathname.startsWith("/docs"))
+      return new Response(
+        Bun.file(path.resolve(".", "docs", "index.html")).stream(),
+      );
+
+    if (url.pathname.startsWith("/seventv"))
+      return new Response(
+        Bun.file(path.resolve(".", "docs", "sevenTV.html")).stream(),
+      );
+
+    if (url.pathname == "/api-spec.json")
+      return new Response(
+        Bun.file(path.resolve(".", "docs", "api-spec.json")).stream(),
+      );
+
+    if (url.pathname.startsWith("/robots.txt"))
+      return new Response(Bun.file(path.resolve(".", "robots.txt")).stream());
+
     return await handleRoute(
       req,
-      new URL(req.url).pathname.split("/")[1] || "",
+      url.pathname.split("/")[1] || "",
       req.method as HTTPMethod,
-      server
+      server,
     );
   },
 });
 
-//if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
+if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
 //generateGuessrRounds();
 
 console.log("Ready! Server running at http://localhost:3000");
