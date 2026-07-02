@@ -1,3 +1,4 @@
+import { security_headers } from "$store/globals";
 import { RateLimiter } from "ts-rate-limiter";
 
 const route_regex = /^\/$|^\/(:?[a-zA-Z0-9_-]+)(\/:?[a-zA-Z0-9_-]+)*\/?$/;
@@ -59,6 +60,48 @@ interface reqParsed extends Request {
   query: URLSearchParams;
 }
 
+const securityHeaders: Record<string, string> = {
+  // Only allow these headers in CORS requests
+  "Access-Control-Allow-Headers": "Content-Type, X-Auth-Token, version",
+
+  // Restrict what external resources can be loaded, prevent XSS, unsafe scripts/styles
+  "Content-Security-Policy": security_headers.join("; "),
+
+  // Enforce HTTPS, tells browsers to always use secure connections
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+
+  // Prevent the site from being framed (clickjacking protection)
+  "X-Frame-Options": "DENY",
+
+  // Prevent MIME type sniffing, enforce declared content-type
+  "X-Content-Type-Options": "nosniff",
+
+  // Control what referrer info is sent (privacy/security)
+  "Referrer-Policy": "no-referrer",
+
+  // Disallow Flash/Adobe cross-domain policies
+  "X-Permitted-Cross-Domain-Policies": "none",
+
+  // Optional: Restrict which features the browser can use
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+
+  "Cache-Control": "public, max-age=300, s-maxage=300",
+
+  // Optional: Hide server info
+  Server: "",
+};
+
+export function setSecurityHeaders(res: Res | Response): Res | Response {
+  if (!res.headers.get("Access-Control-Allow-Origin"))
+    res.headers.set("Access-Control-Allow-Origin", "*");
+
+  for (const [header, value] of Object.entries(securityHeaders)) {
+    res.headers.set(header, value);
+  }
+
+  return res;
+}
+
 export default class Router {
   routeName: string;
 
@@ -83,7 +126,7 @@ export default class Router {
   };
 
   createRes = (): Res => {
-    const res: Res = {
+    let res: Res = {
       object: {
         status: 200,
         headers: new Headers(),
@@ -129,6 +172,9 @@ export default class Router {
         });
       },
     };
+
+    res = setSecurityHeaders(res) as Res;
+
     return res;
   };
 
@@ -247,12 +293,16 @@ export default class Router {
         origin &&
         Array.isArray(routeHandler.settings?.cors) &&
         routeHandler.settings.cors.includes(new URL(origin).host)
-      ) { // ORIGIN HEADER PRESENT, CORS USE CUSTOM LIST
+      ) {
+        // ORIGIN HEADER PRESENT, CORS USE CUSTOM LIST
         res.headers.set("Access-Control-Allow-Origin", origin);
-      } else { // ORIGIN HEADER PRESENT, NO CORS SETTINGS
+      } else {
+        // ORIGIN HEADER PRESENT, NO CORS SETTINGS
         res.headers.set(
           "Access-Control-Allow-Origin",
-          globalThis.allowedOrigins?.includes(new URL(origin).host) ? origin : "null",
+          globalThis.allowedOrigins?.includes(new URL(origin).host)
+            ? origin
+            : "null",
         );
       }
 

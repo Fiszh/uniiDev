@@ -7,16 +7,22 @@ import { Queries } from "$lib/GQL";
 import pkg from "./package.json";
 
 import { queueMessage } from "$lib/discord";
-import { setSecurityHeaders } from "$lib/router";
+import { setSecurityHeaders } from "$lib/routerV2";
 import { allowed_sites } from "$store/globals";
 import { generateGuessrRounds } from "$background/guessr";
 
 const routes_path = path.resolve(".", "routes");
 
-const CreateErrorResponse = (msg: string, status: number = 500) =>
-  new Response(JSON.stringify({ message: msg, status, error: true }), {
-    status,
-  });
+const CreateErrorResponse = (msg: string, status: number = 500) => {
+  let res = new Response(
+    JSON.stringify({ message: msg, status, error: true }),
+    {
+      status,
+    },
+  );
+
+  return setSecurityHeaders(res) as Response;
+};
 
 // This might be a shitty way to do this, im not a js expert tho...
 async function handleRoute(
@@ -28,23 +34,23 @@ async function handleRoute(
   const url = new URL(req.url);
 
   try {
-    const route_path = path.resolve(routes_path, found_route);
+    const module = await import(path.resolve(routes_path, found_route));
 
-    if (fs.existsSync(route_path)) {
-      const module = await import(route_path);
+    if (
+      module &&
+      module.default &&
+      typeof module.default["exec"] === "function"
+    ) {
+      const res = await module.default["exec"](req, server);
 
-      if (
-        module &&
-        module.default &&
-        typeof module.default["exec"] === "function"
-      ) {
-        const res = await module.default["exec"](req, server);
+      console.log(res);
 
-        console.log(res);
-
-        if (res instanceof Response) return res;
-        return new Response(typeof res == "object" ? JSON.stringify(res) : res);
-      }
+      if (res instanceof Response) return res;
+      return new Response(typeof res == "object" ? JSON.stringify(res) : res);
+    } else if (module.default[method].error) {
+      throw new Error(
+        `Router failed!\nRouter Error Type: ${module.default[method].type}`,
+      );
     }
 
     return CreateErrorResponse(
@@ -86,15 +92,78 @@ const welcomePage = `
 
 /* 
 // TODO
-Add security headers
 Add rate limiting
-Add cdn
+Add security headers to quick responses
 */
+
+const badgeSizes: Record<string, number> = {
+  "1x": 18,
+  "2x": 36,
+  "3x": 54,
+  "4x": 72,
+};
 
 Bun.serve({
   port: 3000,
   async fetch(req, server) {
     const url = new URL(req.url);
+
+    if (url.pathname == "/health") return new Response("OK", { status: 200 });
+
+    if (url.host.startsWith("cdn.")) {
+      if (url.pathname === "/")
+        return new Response(JSON.stringify({ message: "Welcome to the CDN" }));
+
+      try {
+        const pathname = decodeURIComponent(url.pathname);
+
+        const base = path.resolve(".", "cdn");
+
+        let file_path = path.resolve(base, "." + pathname);
+
+        if (pathname.startsWith("/badges/")) {
+          const badgeMatch = url.pathname.match(
+            /^\/badges\/(?<project>[^\/]+)\/(?<id>[^\/]+)\/(?<variant>[^\/]+)\/(?<filename>[^\/]+)\.(?<ext>[a-zA-Z0-9]+)$/,
+          );
+
+          if (badgeMatch && badgeMatch.groups) {
+            const badgeInfo = { ...badgeMatch.groups };
+
+            if (badgeInfo["filename"] && typeof badgeSizes[badgeInfo["filename"]] == "number") {
+              const badge_file_path = path.resolve(
+                ".",
+                "badges",
+                Object.values(badgeInfo).slice(0, -2).join("/"),
+                "badge.webp",
+              );
+
+              const badgeSize = badgeSizes[badgeInfo["filename"]];
+
+              const blob = await Bun.file(badge_file_path)
+                .image()
+                .resize(badgeSize!)
+                .webp()
+                .blob()
+                .catch((e) => {
+                  throw e;
+                });
+
+              return new Response(blob);
+            }
+          }
+        }
+
+        const file_exists = fs.existsSync(file_path);
+
+        if (file_exists && fs.statSync(file_path).isFile())
+          return new Response(Bun.file(file_path).stream());
+      } catch {}
+
+      return new Response(
+        JSON.stringify({ message: "Not found", error: true }),
+        { status: 404 },
+      );
+    }
 
     if (url.pathname === "/")
       return new Response(welcomePage, {
@@ -102,8 +171,6 @@ Bun.serve({
           "Content-Type": "text/html",
         },
       });
-
-    if (url.pathname == "/health") return new Response("OK", { status: 200 });
 
     if (url.pathname.startsWith("/docs"))
       return new Response(

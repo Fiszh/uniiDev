@@ -1,6 +1,5 @@
 const UChat_Testers = [
   "413189785", // JOLONG66
-  "61094148", // SONKU___
   "440235768", // SPEEDYEMPEROR
   "113944563", // REAPEX_1
   "765207728", // DEVPOLAND

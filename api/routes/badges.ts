@@ -37,22 +37,21 @@ RequestRouter.add(
               imgs:
                 badge.children.reduce<Record<string, any>>((acc, imgs) => {
                   if (imgs.children)
-                    acc[imgs.name] =
-                      imgs.children.reduce<Record<string, string>>(
-                        (acc, img) => {
-                          acc[img.name.split(".")[0] as string] =
-                            CDN_URL +
-                            path.join(
-                              "badges",
-                              badge_parent.name,
-                              badge.name,
-                              imgs.name,
-                              img.name,
-                            );
-                          return acc;
-                        },
-                        {},
-                      ) ?? {};
+                    acc[imgs.name] = ["1x", "2x", "3x", "4x"].reduce<
+                      Record<string, string>
+                    >((acc, s) => {
+                      acc[s] =
+                        CDN_URL +
+                        path.join(
+                          "badges",
+                          badge_parent.name,
+                          badge.name,
+                          imgs.name,
+                          s + ".webp",
+                        );
+
+                      return acc;
+                    }, {});
                   return acc;
                 }, {}) ?? {},
               type: badge_parent.name + " Badge",
