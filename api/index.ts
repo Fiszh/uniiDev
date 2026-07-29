@@ -200,9 +200,7 @@ Bun.serve({
         );
 
       if (url.pathname.startsWith("/seventv"))
-        return new Response(
-          Bun.file(path.resolve(".", "docs", "sevenTV.html")).stream(),
-        );
+        return Response.redirect("https://7tv.app/api/docs", 302);
 
       if (url.pathname == "/api-spec.json")
         return new Response(
