@@ -107,7 +107,7 @@
       {/snippet}
       Support
     </Button>
-    <Button secondary>GitHub</Button>
+    <Button secondary href={"https://github.com/Fiszh"} target="_blank">GitHub</Button>
   </section>
 </aside>
 
