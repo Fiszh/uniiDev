@@ -1,11 +1,11 @@
 import { security_headers } from "$store/globals";
-import { RateLimiter } from "ts-rate-limiter";
+import rateLimiter from "./rateLimiter";
 
 const route_regex = /^\/$|^\/(:?[a-zA-Z0-9_-]+)(\/:?[a-zA-Z0-9_-]+)*\/?$/;
 
-const limiter = new RateLimiter({
-  windowMs: 60 * 1000, // 1 minute
-  maxRequests: 100,
+const limiter = new rateLimiter({
+  requests: 2,
+  timeout: 60 * 1000, // 1 minute
 });
 
 globalThis.allowedOrigins = [
@@ -100,6 +100,22 @@ export function setSecurityHeaders(res: Res | Response): Res | Response {
   }
 
   return res;
+}
+
+export function getRequestIP(
+  initReq: Request,
+  server: Bun.Server<undefined>,
+): string | null {
+  const forwardedFor = initReq.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor;
+
+  const cfIP = initReq.headers.get("cf-connecting-ip");
+  const serverIP = server.requestIP(initReq)?.address;
+
+  if (cfIP || serverIP)
+    return cfIP ?? serverIP?.replace("::ffff:", "") ?? "unknown";
+
+  return null;
 }
 
 export default class Router {
@@ -211,17 +227,37 @@ export default class Router {
       params: {},
     }) as reqParsed;
 
+    console.log(initReq);
+
+    let options_method;
+
+    if (method === "OPTIONS") {
+      options_method = initReq.headers.get(
+        "access-control-request-method",
+      ) as HTTPMethod;
+      if (!options_method) {
+        return res
+          .json(this.CreateError("OPTIONS request missing 'method' header"))
+          .status(400)
+          .send();
+      }
+    }
+
+    console.log(options_method);
+
     try {
       // CHECK FOR IP ADDRESS AND SET X-FORWARDED-FOR HEADER
-      const forwardedFor = req.headers.get("x-forwarded-for");
-      const cfIP = req.headers.get("cf-connecting-ip");
-      const serverIP = server.requestIP(req)?.address;
+      const requestIP = getRequestIP(initReq, server);
 
-      if (!forwardedFor && (cfIP || serverIP))
-        req.headers.set(
-          "x-forwarded-for",
-          cfIP ?? serverIP?.replace("::ffff:", "") ?? "unknown",
-        );
+      if (!requestIP) throw new Error("IP not found");
+
+      const isAllowed = limiter.isAllowed(requestIP);
+      console.log(limiter.getIP(requestIP));
+
+      if (!isAllowed)
+        return res.json(this.CreateError("Rate limited.")).status(429).send();
+
+      req.headers.set("x-forwarded-for", requestIP);
 
       // ADD QUERY PARAMS TO REQUEST OBJECT
       const rawQuery = new URLSearchParams(router_url.search);
@@ -233,16 +269,20 @@ export default class Router {
       req.query = sanitizedQuery;
 
       // CHECK FOR VALID METHOD AND ROUTE
-      if (!method || !route || !this.routes[method]) throw new Error(`Invalid`);
+      if (
+        !route ||
+        ((!method || !this.routes[method]) &&
+          (!options_method || !this.routes[options_method]))
+      )
+        throw new Error(`Invalid`);
 
-      if (!route_regex.test(route) || !this.routes[method])
-        throw new Error(`Invalid route: ${route}`);
+      if (!route_regex.test(route)) throw new Error(`Invalid route: ${route}`);
 
       // HANDLE PARAMS
       const routeSegments = route.split("/").filter(Boolean);
       let routeHandler;
 
-      for (const r of this.routes[method]) {
+      for (const r of this.routes[options_method || method]) {
         if (r.route === route) {
           routeHandler = r;
           break;
@@ -275,7 +315,7 @@ export default class Router {
 
       if ("params" in routeHandler) req.params = routeHandler.params;
 
-      res.headers.set("Access-Control-Allow-Methods", method);
+      res.headers.set("Access-Control-Allow-Methods", options_method || method);
 
       // CHECK CORS SETTINGS
       const origin = req.headers.get("Origin");
@@ -306,11 +346,13 @@ export default class Router {
         );
       }
 
-      console.log(
-        origin,
-        routeHandler.settings?.cors,
-        res.headers.get("Access-Control-Allow-Origin"),
-      );
+      console.log(options_method);
+
+      // console.log(
+      //   origin,
+      //   routeHandler.settings?.cors,
+      //   res.headers.get("Access-Control-Allow-Origin"),
+      // );
 
       // HANDLE REQUEST
       if (routeHandler.func instanceof Function) {

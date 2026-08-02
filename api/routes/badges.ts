@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 
 import dirTree from "directory-tree";
+import { CDN_URL } from "$store/globals";
 
 interface DirTreeNode {
   path: string;
@@ -17,8 +18,6 @@ const tree: DirTreeNode = dirTree(path.resolve(".", "badges"), {
 });
 
 const RequestRouter = new router("badges");
-
-const CDN_URL = "https://cdn.unii.dev/";
 
 RequestRouter.add(
   "GET",
@@ -42,6 +41,7 @@ RequestRouter.add(
                     >((acc, s) => {
                       acc[s] =
                         CDN_URL +
+                        "/" +
                         path.join(
                           "badges",
                           badge_parent.name,

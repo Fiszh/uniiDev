@@ -1,4 +1,4 @@
-import fs, { fsync } from "fs";
+import fs from "fs";
 import path from "path";
 import Fuse from "fuse.js";
 
