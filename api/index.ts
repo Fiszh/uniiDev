@@ -5,11 +5,14 @@ import { Queries } from "$lib/GQL";
 
 import pkg from "./package.json";
 
-import { setSecurityHeaders } from "$lib/routerV2";
+import { setSecurityHeaders, type InitedRes } from "$lib/routerV2";
 import { API_URL } from "$store/globals";
 import { generateGuessrRounds } from "$background/guessr";
 
 import serveCDN from "./lib/cdn";
+import router from "$lib/routerV2";
+
+const Router = new router("index");
 
 const routes_path = path.resolve(".", "routes");
 
@@ -94,52 +97,32 @@ Bun.serve({
   port: 3000,
   async fetch(req, server) {
     const url = new URL(req.url);
-    
-    let quickRes: Response | undefined;
+
+    let initedRes = await Router.initRes(req, server);
+
+    if (initedRes instanceof Response) return initedRes;
+
+    const quickRes = initedRes as InitedRes;
 
     if (url.pathname == "/health") return new Response("OK", { status: 200 });
 
-    if (url.host.startsWith("cdn.")) quickRes = await serveCDN(url);
+    if (url.host.startsWith("cdn.")) return await serveCDN(quickRes.res, url);
 
     if (url.pathname === "/" && !url.host.startsWith("cdn."))
-      quickRes = new Response(welcomePage, {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      });
+      return quickRes.res.html(welcomePage).send();
 
     if (url.pathname.startsWith("/docs"))
-      quickRes = new Response(
-        Bun.file(path.resolve(".", "docs", "index.html")).stream(),
-        {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8",
-          },
-        },
-      );
+      return quickRes.res
+        .html(Bun.file(path.resolve(".", "docs", "index.html")).stream())
+        .send();
 
     if (url.pathname.startsWith("/seventv"))
-      quickRes = new Response(
-        Bun.file(path.resolve(".", "docs", "sevenTV.html")).stream(),
-        {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8",
-          },
-        },
-      );
-
-    if (url.pathname == "/api-spec.json")
-      quickRes = new Response(
-        Bun.file(path.resolve(".", "docs", "api-spec.json")).stream(),
-      );
+      return quickRes.res.redirect("https://7tv.app/api/docs").send();
 
     if (url.pathname.startsWith("/robots.txt"))
-      quickRes = new Response(
-        Bun.file(path.resolve(".", "robots.txt")).stream(),
-      );
-
-    if (quickRes instanceof Response)
-      return setSecurityHeaders(quickRes) as Response;
+      return quickRes.res
+        .body(Bun.file(path.resolve(".", "robots.txt")).stream())
+        .send();
 
     return await handleRoute(
       req,
@@ -151,6 +134,6 @@ Bun.serve({
 });
 
 if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
-//generateGuessrRounds();
+generateGuessrRounds();
 
 console.log("Ready! Server running at", API_URL);

@@ -4,7 +4,7 @@ import rateLimiter from "./rateLimiter";
 const route_regex = /^\/$|^\/(:?[a-zA-Z0-9_-]+)(\/:?[a-zA-Z0-9_-]+)*\/?$/;
 
 const limiter = new rateLimiter({
-  requests: 2,
+  requests: 50,
   timeout: 60 * 1000, // 1 minute
 });
 
@@ -36,7 +36,16 @@ type RouteHandler = {
   };
 };
 
-interface Res {
+export interface InitedRes {
+  method: HTTPMethod;
+  router_url: URL;
+  route: string;
+  res: Res;
+  req: reqParsed;
+  options_method?: HTTPMethod;
+}
+
+export interface Res {
   object: {
     status: number;
     body?: BodyInit;
@@ -50,6 +59,7 @@ interface Res {
   };
   status: (s: Res["object"]["status"]) => Res;
   body: (body: any) => Res;
+  html: (body: string | ReadableStream<Uint8Array<ArrayBuffer>>) => Res;
   json: (body: Record<any, any>) => Res;
   redirect: (url: string) => Res;
   send: (body?: BodyInit | Response) => Response;
@@ -95,9 +105,8 @@ export function setSecurityHeaders(res: Res | Response): Res | Response {
   if (!res.headers.get("Access-Control-Allow-Origin"))
     res.headers.set("Access-Control-Allow-Origin", "*");
 
-  for (const [header, value] of Object.entries(securityHeaders)) {
+  for (const [header, value] of Object.entries(securityHeaders))
     res.headers.set(header, value);
-  }
 
   return res;
 }
@@ -106,16 +115,11 @@ export function getRequestIP(
   initReq: Request,
   server: Bun.Server<undefined>,
 ): string | null {
-  const forwardedFor = initReq.headers.get("x-forwarded-for");
-  if (forwardedFor) return forwardedFor;
-
   const cfIP = initReq.headers.get("cf-connecting-ip");
+  if (cfIP) return cfIP;
+
   const serverIP = server.requestIP(initReq)?.address;
-
-  if (cfIP || serverIP)
-    return cfIP ?? serverIP?.replace("::ffff:", "") ?? "unknown";
-
-  return null;
+  return serverIP?.replace("::ffff:", "") ?? null;
 }
 
 export default class Router {
@@ -141,7 +145,7 @@ export default class Router {
     return { error: true, router: true, type };
   };
 
-  createRes = (): Res => {
+  private createRes = (): Res => {
     let res: Res = {
       object: {
         status: 200,
@@ -171,6 +175,11 @@ export default class Router {
       json: (body) => {
         res.object.body = JSON.stringify(body);
         res.object.headers.set("Content-Type", "application/json");
+        return res;
+      },
+      html: (body) => {
+        res.object.body = body;
+        res.object.headers.set("Content-Type", "text/html; charset=utf-8");
         return res;
       },
       redirect: (url) => {
@@ -214,10 +223,10 @@ export default class Router {
     return obj;
   }
 
-  async exec(
+  async initRes(
     initReq: Request,
     server: Bun.Server<undefined>,
-  ): Promise<Response> {
+  ): Promise<InitedRes | Response> {
     const method = initReq.method as HTTPMethod;
     const router_url = new URL(initReq.url);
     const route = router_url.pathname;
@@ -229,12 +238,13 @@ export default class Router {
 
     console.log(initReq);
 
-    let options_method;
+    let options_method: HTTPMethod | undefined;
 
     if (method === "OPTIONS") {
       options_method = initReq.headers.get(
         "access-control-request-method",
       ) as HTTPMethod;
+
       if (!options_method) {
         return res
           .json(this.CreateError("OPTIONS request missing 'method' header"))
@@ -243,31 +253,66 @@ export default class Router {
       }
     }
 
-    console.log(options_method);
+    // CHECK FOR IP ADDRESS AND SET X-FORWARDED-FOR HEADER
+    const requestIP = getRequestIP(initReq, server);
+
+    if (!requestIP) throw new Error("IP not found");
+
+    const isAllowed = limiter.isAllowed(requestIP);
+    console.log(limiter.getIP(requestIP));
+
+    if (!isAllowed)
+      return res.json(this.CreateError("Rate limited.")).status(429).send();
+
+    req.headers.set("x-forwarded-for", requestIP);
+
+    // ADD QUERY PARAMS TO REQUEST OBJECT
+    const rawQuery = new URLSearchParams(router_url.search);
+    const sanitizedQuery = new URLSearchParams();
+
+    for (const [key, value] of rawQuery.entries())
+      sanitizedQuery.set(key, this.sanitizeObject(value) as string);
+
+    req.query = sanitizedQuery;
+
+    res.headers.set("Access-Control-Allow-Methods", options_method || method);
+
+    // CHECK CORS SETTINGS
+    const origin = req.headers.get("Origin");
+    if (!origin) {
+      // NO ORIGIN HEADER, ALLOW ALL
+      res.headers.set("Access-Control-Allow-Origin", "*");
+    } else {
+      // ORIGIN HEADER PRESENT, NO CORS SETTINGS
+      res.headers.set(
+        "Access-Control-Allow-Origin",
+        globalThis.allowedOrigins?.includes(new URL(origin).host)
+          ? origin
+          : "null",
+      );
+    }
+
+    return {
+      method,
+      router_url,
+      route,
+      res,
+      req,
+      options_method,
+    };
+  }
+
+  async exec(
+    initReq: Request,
+    server: Bun.Server<undefined>,
+  ): Promise<Response> {
+    const initedRes = await this.initRes(initReq, server);
+
+    if (initedRes instanceof Response) return initedRes;
+
+    const { method, route, res, req, options_method } = initedRes;
 
     try {
-      // CHECK FOR IP ADDRESS AND SET X-FORWARDED-FOR HEADER
-      const requestIP = getRequestIP(initReq, server);
-
-      if (!requestIP) throw new Error("IP not found");
-
-      const isAllowed = limiter.isAllowed(requestIP);
-      console.log(limiter.getIP(requestIP));
-
-      if (!isAllowed)
-        return res.json(this.CreateError("Rate limited.")).status(429).send();
-
-      req.headers.set("x-forwarded-for", requestIP);
-
-      // ADD QUERY PARAMS TO REQUEST OBJECT
-      const rawQuery = new URLSearchParams(router_url.search);
-      const sanitizedQuery = new URLSearchParams();
-
-      for (const [key, value] of rawQuery.entries())
-        sanitizedQuery.set(key, this.sanitizeObject(value) as string);
-
-      req.query = sanitizedQuery;
-
       // CHECK FOR VALID METHOD AND ROUTE
       if (
         !route ||
@@ -315,38 +360,22 @@ export default class Router {
 
       if ("params" in routeHandler) req.params = routeHandler.params;
 
-      res.headers.set("Access-Control-Allow-Methods", options_method || method);
+      console.log(options_method);
 
       // CHECK CORS SETTINGS
       const origin = req.headers.get("Origin");
-      if (!origin) {
-        // NO ORIGIN HEADER, ALLOW ALL
-        res.headers.set("Access-Control-Allow-Origin", "*");
-      } else if (
-        origin &&
-        typeof routeHandler.settings?.cors == "boolean" &&
-        !routeHandler.settings.cors
-      ) {
-        // ORIGIN HEADER PRESENT, CORS SETTINGS DISABLED
-        res.headers.set("Access-Control-Allow-Origin", "*");
-      } else if (
-        origin &&
-        Array.isArray(routeHandler.settings?.cors) &&
-        routeHandler.settings.cors.includes(new URL(origin).host)
-      ) {
-        // ORIGIN HEADER PRESENT, CORS USE CUSTOM LIST
-        res.headers.set("Access-Control-Allow-Origin", origin);
-      } else {
-        // ORIGIN HEADER PRESENT, NO CORS SETTINGS
-        res.headers.set(
-          "Access-Control-Allow-Origin",
-          globalThis.allowedOrigins?.includes(new URL(origin).host)
-            ? origin
-            : "null",
-        );
+      if (origin && routeHandler.settings && "cors" in routeHandler.settings) {
+        if (!routeHandler.settings.cors) {
+          // ORIGIN HEADER PRESENT, CORS SETTINGS DISABLED
+          res.headers.set("Access-Control-Allow-Origin", "*");
+        } else if (
+          Array.isArray(routeHandler.settings.cors) &&
+          routeHandler.settings.cors.includes(new URL(origin).host)
+        ) {
+          // ORIGIN HEADER PRESENT, CORS USE CUSTOM LIST
+          res.headers.set("Access-Control-Allow-Origin", origin);
+        }
       }
-
-      console.log(options_method);
 
       // console.log(
       //   origin,
@@ -375,7 +404,7 @@ export default class Router {
     }
   }
 
-  handler<T>(
+  private handler<T>(
     route: string,
     func: (req: reqParsed, res: Res) => Promise<T>,
     settings?: RouteHandler["settings"],
