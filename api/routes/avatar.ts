@@ -1,7 +1,7 @@
 import { getQuery, sendGQLRequest } from "$lib/GQL";
-import router from "$lib/router";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("avatar");
 
 const avatar_query = getQuery("channel_avatar");
 
@@ -40,7 +40,7 @@ RequestRouter.add("GET", "/", async (req, res) => {
   const GQL_request = await sendGQLRequest(GQLbody);
 
   if (GQL_request.data[0].errors) {
-    res.status(GQL_request.code || 500).json(GQL_request);
+    return res.status(GQL_request.code || 500).json(GQL_request);
   } else if (!GQL_request.data[0].data?.user?.profileImageURL) {
     cache.set(channelID, {
       data: {
@@ -52,7 +52,7 @@ RequestRouter.add("GET", "/", async (req, res) => {
       expires: Date.now() + ttl,
     });
 
-    res.status(500).json({
+    return res.status(500).json({
       error: `Channel with id of ${channelID} does not exist on Twitch!`,
     });
   } else {
@@ -64,7 +64,7 @@ RequestRouter.add("GET", "/", async (req, res) => {
       expires: Date.now() + ttl,
     });
 
-    res
+    return res
       .status(200)
       .json({ avatar: GQL_request.data[0].data?.user?.profileImageURL });
   }

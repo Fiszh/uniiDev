@@ -1,7 +1,7 @@
-import router from "$lib/router";
+import router from "$lib/routerV2";
 import { validate } from "$lib/twitch";
 
-const RequestRouter = router();
+const RequestRouter = new router("settings");
 
 import { save, read, del } from "$lib/userSettings";
 import { UChat_Testers } from "$store/globals";

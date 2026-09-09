@@ -1,7 +1,6 @@
-import router from "$lib/router";
-import { validate } from "$lib/twitch";
+import router from "$lib/routerV2";
 
-const RequestRouter = router();
+const RequestRouter = new router("status");
 
 const admins = ["528761326"];
 

@@ -1,6 +1,5 @@
 const UChat_Testers = [
   "413189785", // JOLONG66
-  "61094148", // SONKU___
   "440235768", // SPEEDYEMPEROR
   "113944563", // REAPEX_1
   "765207728", // DEVPOLAND
@@ -10,12 +9,23 @@ const UChat_Testers = [
   "528761326", // MAIN
 ];
 
+export const CDN_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://cdn.localhost:3000"
+    : "https://cdn.unii.dev";
+
+export const API_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://api.localhost:3000"
+    : "https://api.unii.dev";
+
 export const allowed_sites = [
   "http://localhost:5173",
   "https://unii.dev",
   "https://chat.unii.dev",
   "https://api.unii.dev",
   "https://dev.unii.dev",
+  "https://www.unii.dev",
 ];
 
 export const security_headers = [
