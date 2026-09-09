@@ -7,7 +7,7 @@ const routes_path = path.resolve(".", "routes");
 const ws_path = path.resolve(".", "websockets");
 
 const route_regex =
-  /^\/$|^\/(:?(?:[a-zA-Z0-9_.~!$&'()*+,;=:@-]|%[0-9A-Fa-f]{2})+)(\/(:?(?:[a-zA-Z0-9_.~!$&'()*+,;=:@-]|%[0-9A-Fa-f]{2})+))*\/?$/;
+  /^\/$|^\/(?:%[0-9A-Fa-f]{2}|[a-zA-Z0-9_.~!$&'()*+,;=:@-])+(?:\/(?:%[0-9A-Fa-f]{2}|[a-zA-Z0-9_.~!$&'()*+,;=:@-])+)*\/?$/;
 
 const limiter = new rateLimiter({
   requests: 50,
