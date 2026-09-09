@@ -118,32 +118,7 @@ Bun.serve({
       }
     },
 
-      if (url.pathname == "/health") return respond("OK");
-
-      if (url.pathname.startsWith("/docs"))
-        return new Response(
-          Bun.file(path.resolve(".", "docs", "index.html")).stream(),
-        );
-
-      if (url.pathname.startsWith("/seventv"))
-        return Response.redirect("https://7tv.app/api/docs", 302);
-
-      if (url.pathname == "/api-spec.json")
-        return new Response(
-          Bun.file(path.resolve(".", "docs", "api-spec.json")).stream(),
-        );
-
-      if (url.pathname.startsWith("/robots.txt"))
-        return new Response(Bun.file(path.resolve(".", "robots.txt")).stream());
-
-      const found_route = findRoute(pathSegments[0]);
-
-      if (found_route)
-        return handleRoute(req, found_route, req.method as HTTPMethod);
-    } else if (
-      host.startsWith("cdn.localhost") ||
-      host.startsWith("cdn.unii.dev")
-    ) {
+    close(ws, code, reason) {
       try {
         (ws as any).data?.adapter?.emit("close", { code, reason });
         (ws as any).data.adapter = undefined;
