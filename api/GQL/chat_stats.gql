@@ -1,0 +1,11 @@
+query Combined($logins: [String!]!) {
+  users(logins: $logins) {
+    login
+    displayName
+    id
+    profileImageURL(width: 600)
+    stream {
+      type
+    }
+  }
+}

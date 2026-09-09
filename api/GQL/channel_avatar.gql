@@ -1,0 +1,5 @@
+query UserAvatar($id: ID!, $width: Int!) {
+  user(id: $id) {
+    profileImageURL(width: $width)
+  }
+}
