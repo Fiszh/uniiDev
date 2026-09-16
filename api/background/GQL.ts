@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { queueMessage } from "$lib/discord";
+import { sendAPILog } from "$lib/APILog";
 
 const getRandomInterval = (minMinutes = 40, maxMinutes = 60) =>
   Math.floor(Math.random() * (maxMinutes - minMinutes) * 60000) +
@@ -41,16 +41,7 @@ export async function getTwitchGQLVersion() {
 
       process.env.CLIENT_VERSION = buildId;
 
-      if (process.env.API_LOGS)
-        queueMessage(
-          process.env.API_LOGS,
-          {
-            content: webhookMessage
-              .flatMap((msg) => msg.name + ": " + msg.value)
-              .join("\n"),
-          },
-          5000,
-        );
+      sendAPILog("GQL Version", webhookMessage);
 
       setTimeout(getTwitchGQLVersion, waitTime);
     } else {
@@ -73,16 +64,7 @@ export async function getTwitchGQLVersion() {
       },
     ];
 
-    if (process.env.API_LOGS)
-      queueMessage(
-        process.env.API_LOGS,
-        {
-          content: webhookMessage
-            .flatMap((msg) => msg.name + ": " + msg.value)
-            .join("\n"),
-        },
-        5000,
-      );
+    sendAPILog("GQL Version", webhookMessage);
 
     setTimeout(getTwitchGQLVersion, waitTime);
   }

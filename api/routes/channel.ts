@@ -1,4 +1,4 @@
-import { queueMessage } from "$lib/discord";
+import { sendAPILog } from "$lib/APILog";
 import { getQuery, sendGQLRequest } from "$lib/GQL";
 import router from "$lib/routerV2";
 import { read } from "$lib/userSettings";
@@ -81,16 +81,7 @@ RequestRouter.add("GET", "/", async (req, res) => {
     });
   }
 
-  if (process.env.API_LOGS)
-    queueMessage(
-      process.env.API_LOGS,
-      {
-        content: webhookMessage
-          .flatMap((msg) => msg.name + ": " + msg.value)
-          .join("\n"),
-      },
-      5000,
-    );
+  sendAPILog("Getting Twitch Channel", webhookMessage);
 
   if (cached && !noCache) {
     if (cached.expires < Date.now()) {

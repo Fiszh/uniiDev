@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { Innertube, Log } from "youtubei.js";
 
 import pkg from "../package.json";
+import { sendAPILog } from "$lib/APILog";
 
 const yt = await Innertube.create();
 
@@ -116,6 +117,7 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
     version: pkg["version"],
   };
 
+  const referer = req.headers.get("referer") ?? "No referer";
   const reqIP = req.headers.get("x-forwarded-for") as string;
 
   ws.addEventListener("message", async (ev) => {
@@ -123,8 +125,6 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
       string,
       any
     >;
-
-    console.log(data);
 
     if (typeof data != "object" || "op" in data == false) {
       ws.send(JSON.stringify({ error: "invalid message", ...ws_info }));
@@ -141,10 +141,25 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
         //   return ws.close();
         // }
 
-        addListener(data["channel"], ws_info, ws).catch((err) => {
-          console.error("subscribe failed", err);
-          ws.send(JSON.stringify({ error: "subscribe failed", ...ws_info }));
-        });
+        addListener(data["channel"], ws_info, ws)
+          .catch((err) => {
+            console.error("subscribe failed", err);
+            ws.send(JSON.stringify({ error: "subscribe failed", ...ws_info }));
+          })
+          .then(() => {
+            const webhookMessage = [
+              {
+                name: "WebSocket ID",
+                value: ws_id,
+              },
+              {
+                name: "Channel ID",
+                value: `[${data["channel"]}](https://www.youtube.com/channel/${data["channel"]})`,
+              },
+            ];
+
+            sendAPILog("YouTube WebSocket", webhookMessage);
+          });
 
         // connected[reqIP] = {
         //   channel: data["channel"],
@@ -176,6 +191,25 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
   });
 
   ws.send(JSON.stringify({ type: "welcome", ...ws_info }));
+
+  setTimeout(() => ws.close(), 3600000);
+
+  const webhookMessage = [
+    {
+      name: "WebSocket ID",
+      value: ws_id,
+    },
+    {
+      name: "Refer",
+      value: referer,
+    },
+    {
+      name: "IP",
+      value: `[${reqIP}](https://ipinfo.io/${reqIP})`,
+    },
+  ];
+
+  sendAPILog("New YouTube WebSocket", webhookMessage);
 });
 
 export default RequestRouter;

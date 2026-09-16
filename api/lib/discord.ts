@@ -45,7 +45,7 @@ export async function sendMessage(
   return data;
 }
 
-async function sendQueuedMessage(url: string) {
+async function sendQueuedMessage(title: string = "API Message", url: string) {
   const body: (string | Record<string, any>)[] | undefined =
     queuedMessages[url];
 
@@ -55,7 +55,7 @@ async function sendQueuedMessage(url: string) {
     if (typeof message == "string") return message;
 
     return {
-      title: `API Message #${i + 1}`,
+      title,
       fields: !message.content ? message : undefined,
       description: message.content || undefined,
       color: message.color ?? 0x00ff00,
@@ -71,13 +71,14 @@ async function sendQueuedMessage(url: string) {
 }
 
 export async function queueMessage(
+  title: string,
   url: string,
   body: string | Record<string, any>,
   time: number,
 ) {
   if (queuedMessages[url]) {
     if (queuedMessages[url].length >= 10) {
-      await sendQueuedMessage(url);
+      await sendQueuedMessage(title, url);
     } else {
       return queuedMessages[url].push(body);
     }
@@ -85,7 +86,5 @@ export async function queueMessage(
 
   queuedMessages[url] = [body];
 
-  setTimeout(() => {
-    sendQueuedMessage(url);
-  }, time);
+  setTimeout(() => sendQueuedMessage(title, url), time);
 }
