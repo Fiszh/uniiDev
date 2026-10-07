@@ -1,0 +1,292 @@
+<script lang="ts">
+    // import NewTab from "$components/dialogs/new_tab.svelte";
+    import { isMobile } from "$stores/global";
+    import { ExternalLink } from "@lucide/svelte";
+    import { onMount, type Snippet } from "svelte";
+    import type {
+        HTMLButtonAttributes,
+        HTMLAnchorAttributes,
+    } from "svelte/elements";
+
+    type Props = {
+        href?: string | null;
+        icon?: Snippet;
+        iconRight?: Snippet;
+        element?: HTMLButtonElement | HTMLAnchorElement;
+        disabled?: boolean;
+        wide?: boolean;
+        center?: boolean;
+        primary?: boolean;
+        secondary?: boolean;
+        danger?: boolean;
+        approve?: boolean;
+        layout?: "row" | "column";
+        noHover?: boolean;
+        compact?: boolean;
+        forceOpenLink?: boolean;
+        children?: Snippet;
+    } & HTMLButtonAttributes &
+        HTMLAnchorAttributes;
+
+    let {
+        href,
+        icon,
+        iconRight,
+        element = $bindable(),
+        disabled = false,
+        wide = false,
+        center = false,
+        primary = false,
+        secondary = false,
+        danger = false,
+        approve = false,
+        layout = "row",
+        noHover = false,
+        compact = false,
+        forceOpenLink = false,
+        children,
+        ...restProps
+    }: Props = $props();
+
+    let isOffSite = $state(false);
+
+    onMount(() => {
+        if (
+            href &&
+            !href.startsWith(window.location.origin) &&
+            href.startsWith("https")
+        ) {
+            isOffSite = true;
+
+            const HREF_URL = new URL(href);
+
+            if (!HREF_URL.searchParams.has("referrer"))
+                HREF_URL.searchParams.append(
+                    "referrer",
+                    window.location.hostname,
+                );
+
+            href = HREF_URL.toString();
+        }
+
+        if (disabled) noHover = true;
+    });
+
+    let showNewTabDialog = $state(false);
+</script>
+
+<!-- <NewTab link={href ?? ""} bind:show={showNewTabDialog} /> -->
+
+{#if href && (!$isMobile || !isOffSite || forceOpenLink)}
+    <a
+        bind:this={element}
+        {href}
+        target={isOffSite ? "_blank" : ""}
+        rel={isOffSite ? "noopener noreferrer" : ""}
+        {...restProps}
+        class:disabled
+        class:wide
+        class:center
+        class:primary
+        class:secondary
+        class:danger
+        class:approve
+        class:noHover
+        class:compact
+        class:column={layout == "column"}
+    >
+        <span>{@render icon?.()}</span>
+        <span>{@render children?.()}</span>
+        <span>
+            {#if !iconRight && isOffSite && !$isMobile}
+                <ExternalLink />
+            {:else}
+                {@render iconRight?.()}
+            {/if}
+        </span>
+    </a>
+{:else}
+    <button
+        bind:this={element}
+        {...restProps}
+        {disabled}
+        class:disabled
+        class:wide
+        class:center
+        class:secondary
+        class:primary
+        class:danger
+        class:approve
+        class:noHover
+        class:compact
+        class:column={layout == "column"}
+        onclick={(e) => {
+            if (isMobile && isOffSite && href) {
+                showNewTabDialog = true;
+            } else {
+                restProps.onclick?.(e);
+            }
+        }}
+    >
+        {@render icon?.()}
+        <span>{@render children?.()}</span>
+        {@render iconRight?.()}
+    </button>
+{/if}
+
+<style lang="scss">
+    a,
+    button {
+        background-color: var(--ghost);
+        color: var(--ghost-text);
+        border: var(--ghost-border);
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        font-size: inherit;
+        display: inline-flex;
+        align-items: center;
+        text-align: center;
+        gap: 0.5rem;
+        position: relative;
+
+        white-space: nowrap;
+        user-select: none;
+        flex-wrap: nowrap;
+
+        &:not(.center):has(> *:nth-child(3)) > *:nth-child(2) {
+            width: 100%;
+            text-align: left;
+        }
+
+        &.column {
+            flex-direction: column;
+        }
+
+        span:empty {
+            display: none;
+        }
+
+        text-decoration: none !important;
+
+        transition:
+            background-color 0.3s ease,
+            border-radius 0.3s ease;
+
+        &.compact {
+            padding: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        &.center {
+            justify-content: center;
+        }
+
+        &.wide {
+            width: 100%;
+        }
+
+        &:not(.noHover) {
+            @media (hover: hover) and (pointer: fine) {
+                &:hover {
+                    background-color: var(--ghost-hover);
+                    border-radius: 0.25rem;
+                }
+            }
+
+            &:active,
+            &.active {
+                border-radius: 0.15rem;
+                background-color: var(--ghost-active);
+            }
+        }
+
+        &.primary {
+            background-color: var(--primary);
+            color: var(--primary-text);
+            border: var(--primary-border);
+
+            &:not(.noHover) {
+                @media (hover: hover) and (pointer: fine) {
+                    &:hover {
+                        background-color: var(--primary-hover);
+                    }
+                }
+
+                &:active,
+                &.active {
+                    background-color: var(--primary-active);
+                }
+            }
+        }
+
+        &.secondary {
+            background-color: var(--secondary);
+            color: var(--secondary-text);
+            border: var(--secondary-border);
+
+            &:not(.noHover) {
+                @media (hover: hover) and (pointer: fine) {
+                    &:hover {
+                        background-color: var(--secondary-hover);
+                    }
+                }
+
+                &:active,
+                &.active {
+                    background-color: var(--secondary-active);
+                }
+            }
+        }
+
+        &.danger {
+            background-color: var(--danger);
+            color: var(--danger-text);
+            border: var(--danger-border);
+
+            &:not(.noHover) {
+                @media (hover: hover) and (pointer: fine) {
+                    &:hover {
+                        background-color: var(--danger-hover);
+                        color: var(--danger-text-hover);
+                    }
+                }
+
+                &:active,
+                &.active {
+                    background-color: var(--danger-active);
+                    color: var(--danger-text-active);
+                }
+            }
+        }
+
+        &.approve {
+            background-color: var(--approve);
+            color: var(--approve-text);
+            border: var(--approve-border);
+
+            &:not(.noHover) {
+                @media (hover: hover) and (pointer: fine) {
+                    &:hover {
+                        background-color: var(--approve-hover);
+                        color: var(--approve-text-hover);
+                    }
+                }
+
+                &:active,
+                &.active {
+                    background-color: var(--approve-active);
+                    color: var(--approve-text-active);
+                }
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        a,
+        button {
+            padding: 0.25rem 0.5rem;
+            gap: 0.25rem;
+        }
+    }
+</style>

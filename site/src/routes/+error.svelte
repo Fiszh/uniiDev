@@ -1,4 +1,5 @@
 <script>
+  import Button from "$components/inputs/Button.svelte";
   import { site_title } from "../stores/global";
 
   const goBack = () => history.back();
@@ -15,8 +16,8 @@
       Check the URL or try one of the options below.
     </p>
     <div id="buttons">
-      <button on:click={goBack}>Go back a page</button>
-      <a href="/">Go back homepage</a>
+      <Button onclick={goBack} primary>Go back a page</Button>
+      <Button href="/" secondary>Go back homepage</Button>
     </div>
   </div>
   <img src="https://cdn.unii.dev/404.avif" alt="404" />
@@ -52,26 +53,7 @@
 
   #buttons {
     display: flex;
-    gap: 25px;
-
-    & > * {
-      all: unset;
-      transition: all 0.3s;
-      padding: 0.75rem 2rem;
-      background: rgba(255 255 255 / 0.1);
-      border: 1px solid #555;
-      border-radius: 12px;
-      color: #eee;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 1rem;
-
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.068);
-        border-radius: 10px;
-        border: 1px white solid;
-      }
-    }
+    gap: 0.75rem;
   }
 
   img {

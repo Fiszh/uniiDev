@@ -8,7 +8,6 @@ import pkg from "./package.json";
 import { type InitedRes } from "$lib/routerV2";
 import WsAdapter from "./lib/routerV2/wsAdapter";
 import { API_URL } from "$store/globals";
-import { generateGuessrRounds } from "$background/guessr";
 
 import serveCDN from "./lib/cdn";
 import router from "$lib/routerV2";
@@ -128,6 +127,5 @@ Bun.serve({
 });
 
 if (!Queries.headers["Client-Version"]) getTwitchGQLVersion();
-generateGuessrRounds();
 
 console.log("Ready! Server running at", API_URL);

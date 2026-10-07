@@ -1,147 +1,44 @@
 <script lang="ts">
   import { ArrowRight, Heart } from "@lucide/svelte";
-  import { API_URL, site_title } from "../stores/global";
-  import Button from "../components/Button.svelte";
-  import Section from "../components/landing/Section.svelte";
-  import Project from "../components/landing/Project.svelte";
-  import Repo from "../components/landing/Repo.svelte";
-
-  interface ProjectLinks {
-    title: string;
-    description: string;
-    href: string;
-    tags?: string[];
-  }
-
-  const projectLinks: ProjectLinks[] = [
-    {
-      title: "UChat",
-      description: "Twitch chat overlay for streamers",
-      href: "https://chat.unii.dev/",
-      tags: ["Twitch", "7TV", "BTTV", "FFZ"],
-    },
-    {
-      title: "Cop Slop Title Guessr",
-      description: "YouTube thumbnail title guessing game",
-      href: "/guessr/",
-      tags: ["YouTube", "Daily Game"],
-    },
-    {
-      title: "Chat Stats",
-      description: "Twitch chat statistics viewer",
-      href: "/chatStats/",
-      tags: ["Charts", "Analytics"],
-    },
-    {
-      title: "Unofficial 7TV API documentation (docs proxy)",
-      description: "Unofficial 7TV API documentation proxy",
-      href: `${API_URL}/seventv`,
-      tags: ["7TV", "API", "Docs", "Proxy"],
-    },
-  ];
-
-  interface RepoLinks {
-    title: string;
-    description: string;
-    href: string;
-  }
-
-  const repoLinks: RepoLinks[] = [
-    {
-      title: "unii.dev",
-      description: "This Website",
-      href: "https://github.com/Fiszh/uniiDev",
-    },
-    {
-      title: "UChat",
-      description: "Chat Overlay",
-      href: "https://github.com/Fiszh/UChat",
-    },
-    {
-      title: "YAUTC",
-      description: "Custom Twitch",
-      href: "https://github.com/Fiszh/YAUTC",
-    },
-    {
-      title: "7TVPaintsViewer",
-      description: "7TV Paint Viewer (Archived)",
-      href: "https://github.com/Fiszh/7TVPaintsViewer",
-    },
-  ];
+  import { site_title } from "../stores/global";
+  import Button from "$components/inputs/Button.svelte";
 
   site_title.set("Home");
 </script>
 
-<aside id="hero">
-  <p id="hero-label">uniiDev</p>
+<section id="main">
   <img id="hero-logo" src="https://cdn.unii.dev/logo.avif" alt="uniiDev Logo" />
-  <section id="hero-dsc">
-    <p>
-      Self-taught coder specializing in TypeScript, Svelte, and Bun. Working on
-      tools for the Twitch streamers. Almost everything is open source.
-    </p>
-    <p>
-      Reach me via <a
-        href="{API_URL}/twitch/528761326"
-        target="_blank"
-        rel="noopener noreferrer nofollow">Twitch whispers</a
-      >
-      or
-      <a
-        href="https://discord.com/users/703639905691238490"
-        target="_blank"
-        rel="noopener noreferrer nofollow">Discord</a
-      >.
-    </p>
-  </section>
+  <p>I code stuff</p>
   <section id="hero-buttons">
-    <Button primary href={"https://chat.unii.dev/"} target="_blank">
+    <Button primary href="https://chat.unii.dev/">
       Configure UChat
       {#snippet iconRight()}
         <ArrowRight size="1rem" />
       {/snippet}
     </Button>
-    <Button danger href={"https://buymeacoffee.com/jzlnkf5qgo"} target="_blank">
+    <Button href="/chatStats/" secondary>Chat Stats</Button>
+    <Button danger href="https://buymeacoffee.com/jzlnkf5qgo">
       {#snippet icon()}
         <Heart fill="currentColor" size="1rem" />
       {/snippet}
       Support
     </Button>
-    <Button secondary href={"https://github.com/Fiszh"} target="_blank">GitHub</Button>
+    <Button href="https://github.com/Fiszh">GitHub</Button>
   </section>
-</aside>
-
-<Section index={1} title={"Projects"}>
-  {#each projectLinks as project}
-    <Project {...project} />
-  {/each}
-</Section>
-
-<Section index={2} title={"Repos"}>
-  <div id="repos-layout">
-    {#each repoLinks as repo}
-      <Repo {...repo} />
-    {/each}
-  </div>
-</Section>
+</section>
 
 <style lang="scss">
-  #hero {
+  #main {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
 
-    max-width: 25rem;
+    height: 100%;
 
     img {
       max-width: 15rem;
-    }
-
-    #hero-label,
-    #hero-dsc {
-      text-align: left;
-      font-size: 1rem;
-      color: #f0ede88c;
     }
 
     #hero-buttons {
@@ -151,35 +48,10 @@
     }
   }
 
-  #repos-layout {
-    display: grid;
-    gap: 0.7rem;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @keyframes heartbeat {
-    0% {
-      transform: scale(1);
-    }
-
-    14% {
-      transform: scale(1.1);
-    }
-
-    28% {
-      transform: scale(1);
-    }
-
-    42% {
-      transform: scale(1.05);
-    }
-
-    70% {
-      transform: scale(1);
-    }
-
-    100% {
-      transform: scale(1);
+  @media (max-width: 768px) {
+    #hero-buttons {
+      flex-direction: column;
+      align-items: center;
     }
   }
 </style>

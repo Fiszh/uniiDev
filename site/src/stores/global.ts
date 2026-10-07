@@ -1,5 +1,7 @@
 import { writable } from "svelte/store";
 
+export const isMobile = writable<boolean>(false);
+
 export let site_title = writable<string>("");
 export let TopBar = writable({
   login: false,

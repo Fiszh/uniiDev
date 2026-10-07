@@ -1,10 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  import TwitchIcon from "$lib/assets/glitch_flat_white.svg";
-
   import { delCookie, getCookie, setCookie } from "$lib/cookie";
-  import Button from "./Button.svelte";
+  import Button from "./inputs/Button.svelte";
 
   let hasToken = $state<string | null>(null);
 
@@ -15,12 +13,8 @@
 
   const { onToken, onLogOut }: Props = $props();
 
-  onMount(() => {
-    hasToken = getCookie("twitchToken") as string;
-  });
-
   const clientId = "t3kbxbtqduq1nunrzeg3s18vdhhc1m";
-  const scope = "user:read:email user:read:moderated_channels";
+  const scopes = ["user:read:moderated_channels"];
 
   function openTwitchPopup() {
     const redirectUri = `${window.location.origin}/auth`;
@@ -32,7 +26,7 @@
       return;
     }
 
-    const oauthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}`;
+    const oauthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scopes.join(" "))}`;
 
     const width = 500;
     const height = 700;
@@ -47,6 +41,8 @@
   }
 
   onMount(() => {
+    hasToken = getCookie("twitchToken");
+
     window.addEventListener("message", (event) => {
       if (event.origin !== window.location.origin) return;
 
@@ -64,6 +60,6 @@
   {#if hasToken}
     Logout
   {:else}
-    Login
+    Login with Twitch
   {/if}
 </Button>

@@ -3,6 +3,7 @@
   import { TopBar } from "../stores/global";
   import { validateToken } from "$lib/twitch";
   import { delCookie, setCookie } from "$lib/cookie";
+  import { dev } from "$app/environment";
 
   async function handleToken(token: string) {
     const validated = await validateToken(token);
@@ -23,31 +24,31 @@
 
 <topbar>
   <a href="/">
-    unii.dev
+    unii.dev {#if dev}
+      <small id="dev-version">DEV</small>
+    {/if}
   </a>
 
-  {#if $TopBar.login}
-    <LoginButton onToken={handleToken} onLogOut={logOut} />
-  {/if}
+  <LoginButton onToken={handleToken} onLogOut={logOut} />
 </topbar>
 
 <style lang="scss">
-  a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+  small {
+    font-size: 1rem;
   }
 
   topbar {
-    max-height: 2.5rem;
-    min-height: 2.5rem;
+    height: 2.5rem;
     display: inline-flex;
     padding-block: 0.5rem;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.5rem;
-    font-weight: 500;
     overflow: hidden;
     width: 100%;
+
+    a {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
   }
 </style>
