@@ -102,7 +102,8 @@ const securityHeaders: Record<string, string> = {
   // Optional: Restrict which features the browser can use
   "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
 
-  "Cache-Control": "public, max-age=300, s-maxage=300",
+  Vary: "Origin",
+  "Cache-Control": "private, max-age=300",
 
   // Optional: Hide server info
   Server: "",

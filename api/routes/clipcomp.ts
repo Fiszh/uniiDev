@@ -66,7 +66,7 @@ RequestRouter.add("POST", "/", async (req, res) => {
 
 RequestRouter.add("GET", "/", async (req, res) => {
   const rows = db.query("SELECT * FROM submittions").all();
-  
+
   return res.json(rows);
 });
 
