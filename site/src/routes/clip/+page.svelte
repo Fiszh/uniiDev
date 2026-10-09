@@ -47,6 +47,8 @@
 
   <h1>Submit Your Clips</h1>
   <h3>sennyk4 clip comp</h3>
+  <h4 class="flashing">submit clips that make senny look bad</h4>
+  <h4 class="flashing">this isn't a simple clip comp</h4>
 
   <section id="clips">
     {#each clips as _, index (index)}
@@ -88,6 +90,21 @@
 
       max-height: 25vh;
       overflow-y: auto;
+    }
+  }
+
+  .flashing {
+    color: red;
+    animation: flash 1.2s linear infinite;
+  }
+
+  @keyframes flash {
+    0%,
+    100% {
+      text-shadow: 0 0 8px rgba(255, 0, 0, 1);
+    }
+    50% {
+      text-shadow: 0 0 0 rgb(255, 0, 0);
     }
   }
 </style>
