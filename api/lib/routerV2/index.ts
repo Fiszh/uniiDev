@@ -342,7 +342,7 @@ export default class Router {
     const sanitizedQuery = new URLSearchParams();
 
     for (const [key, value] of rawQuery.entries())
-      sanitizedQuery.set(key, this.sanitizeObject(value) as string);
+      sanitizedQuery.append(key, this.sanitizeObject(value) as string);
 
     req.query = sanitizedQuery;
 
