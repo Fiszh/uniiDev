@@ -4,44 +4,83 @@ const RequestRouter = new router("v4");
 
 import { getModdedChannels, validateUser } from "$lib/twitch";
 
-import os from "os";
-import fs from "fs";
-import path from "path";
+import {
+  categories,
+  channelIdQ,
+  channelQuery,
+  emoteQuery,
+  getMonths,
+  statsQuery,
+  topEmotesQ,
+  topQ,
+} from "$lib/chatStatsQueries";
 
-interface dataState {
-  stat_name: string;
-  row: number;
-  data: {
-    name: string;
-    count: number;
-    at: number;
-    url?: string;
-  }[];
+interface StatMetadata {
+  name: string;
+  row?: number;
 }
 
-interface longestMessage {
-  message: string;
-  sent_on: number;
-  sent_by: string;
-}
-
-type statsDataValue =
-  string | number | boolean | dataState | longestMessage | string[];
-
-type statsData = Record<string, statsDataValue>;
-
-interface Err {
-  status: number;
-  message: string;
-}
-
-const chatStatsData_path = path.resolve(os.homedir(), "chatStatsData");
-
-function parseDMY(dateStr: string): Date {
-  const [dd, mm, yyyy]: number[] = dateStr.split("-").map(Number);
-  if (!yyyy || !mm || !dd) return new Date(Date.now());
-  return new Date(yyyy, mm - 1, dd);
-}
+const statsMetadata: Record<string, StatMetadata> = {
+  new_chatters: {
+    name: "New Chatters",
+  },
+  unique_chatters: {
+    name: "Unique Chatters",
+  },
+  online_messages: {
+    name: "Online Messages",
+  },
+  offline_messages: {
+    name: "Offline Messages",
+  },
+  overall_messages: {
+    name: "Overall Messages",
+  },
+  avg_messages_per_chatter: {
+    name: "Average Messages per Chatter",
+  },
+  // LIST
+  message_count_online: {
+    name: "Online",
+    row: 1,
+  },
+  message_count_offline: {
+    name: "Offline",
+    row: 1,
+  },
+  message_count_overall: {
+    name: "Overall",
+    row: 1,
+  },
+  top_linkers: {
+    name: "Top linkers",
+    row: 2,
+  },
+  top_emoters: {
+    name: "Top Emoters",
+    row: 2,
+  },
+  at_streamer: {
+    name: "@streamer",
+    row: 2,
+  },
+  "7TV_emotes": {
+    name: "7TV - Emotes",
+    row: 3,
+  },
+  FFZ_emotes: {
+    name: "FFZ - Emotes",
+    row: 3,
+  },
+  BTTV_emotes: {
+    name: "BTTV - Emotes",
+    row: 3,
+  },
+  "TTV_emotes": {
+    name: "TTV - Emotes",
+    row: 3,
+  },
+};
 
 async function isMod(channel: string, token?: string | null) {
   if (!token) return false;
@@ -49,180 +88,150 @@ async function isMod(channel: string, token?: string | null) {
 
   if (!user_info || "error" in user_info) return false;
 
-  if (user_info.user_id == "528761326") return true;
-  if (user_info.login == channel) return true;
+  if (user_info.login == channel || user_info.user_id == "528761326")
+    return true;
 
   const moddedChannels = await getModdedChannels(
     token,
     user_info.client_id,
-    user_info.user_id,
+    user_info.user_id
   );
 
-  console.log(moddedChannels);
+  //console.log(moddedChannels);
 
   if (!moddedChannels || "error" in moddedChannels) return false;
 
   return moddedChannels.data.find((c) => c.broadcaster_login == channel);
 }
 
-function mergeDataState(
-  new_data: dataState["data"],
-  old_data?: dataState["data"],
-): dataState["data"] {
-  if (!old_data) return new_data;
+RequestRouter.add("GET", "/channels", async (req, res) => {
+  Promise.resolve(channelQuery)
+    .then((result) => {
+      const usernames = result.all(10);
 
-  return Object.values(
-    [...new_data, ...old_data].reduce<Record<string, dataState["data"][0]>>(
-      (acc, data) => {
-        const entry = acc[data.name];
+      return res.status(200).json(usernames);
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        error: "Failed, please try again later!",
+      });
+    });
+});
 
-        if (entry) {
-          acc[data.name] = {
-            ...entry,
-            count: entry.count + data.count,
-          };
-        } else {
-          acc[data.name] = data;
-        }
+RequestRouter.add("GET", "/months/:channel", async (req, res) => {
+  const channel = req.params["channel"];
 
-        return acc;
-      },
-      {},
-    ),
-  );
-}
-
-RequestRouter.add("GET", "/:channel", async (req, res) => {
-  let results = {};
-
-  try {
-    const channel = req.params["channel"];
-
-    const startDate = req.query.get("start");
-    const endDate = req.query.get("end");
-
-    const API_key = req.query.get("key");
-    const twitch_token = req.query.get("token");
-
-    if (!channel) throw { status: 401, message: "Channel not provided" };
-
-    const isChannelMod = await isMod(channel, twitch_token);
-
-    if (
-      (!API_key ||
-        !process.env.CHAT_STATS_V4_KEY ||
-        API_key != process.env.CHAT_STATS_V4_KEY) &&
-      !isChannelMod
-    )
-      throw { status: 401, message: "Invalid API key" };
-
-    if (!fs.existsSync(chatStatsData_path))
-      throw { status: 401, message: "Chat stats data does not exists!" };
-
-    const channel_path = path.resolve(chatStatsData_path, channel);
-
-    if (!fs.existsSync(channel_path))
-      throw { status: 401, message: `${channel} does not exist in the data!` };
-
-    if (!startDate && !endDate && fs.existsSync(channel_path))
-      return res.json({ message: `${channel} exists!`, error: false });
-
-    if (!startDate) throw { status: 401, message: "Start not provided" };
-    if (!endDate) throw { status: 401, message: "End not provided" };
-
-    const start = performance.now();
-
-    const timeFrameStart = parseDMY(startDate);
-    const timeFrameEnd = parseDMY(endDate);
-
-    const files: string[] = (await fs.promises.readdir(channel_path)).filter(
-      (name: string) => {
-        const baseName = name.replace(/\.json$/, ""); // remove extension
-        const date = parseDMY(baseName);
-        return date >= timeFrameStart && date <= timeFrameEnd;
-      },
-    );
-
-    if (!files.length)
-      throw { status: 401, message: "No files in given timestamp" };
-
-    console.log(files);
-
-    const read_data = files.flatMap<statsData>((json) => {
-      return {
-        json_name: json,
-        ...JSON.parse(
-          fs.readFileSync(path.resolve(channel_path, json), "utf-8"),
-        ),
-      };
+  if (!channel)
+    return res.status(500).json({
+      error: "No channel!",
     });
 
-    //console.log(read_data);
+  const aviable_months = await getMonths(channel);
 
-    const merge_data = read_data.flatMap<{
-      key: string;
-      value: statsDataValue;
-    }>((data) =>
-      Object.entries(data).map(([key, value]) => {
-        return {
-          key,
-          value,
-        };
-      }),
-    );
+  if (aviable_months) {
+    return res.status(200).json(aviable_months);
+  } else {
+    return res.status(500).json({
+      error: "Failed, please try again later!",
+    });
+  }
+});
 
-    //console.log(merge_data);
+RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
+  const channel = req.params["channel"];
+  const date = req.params["date"];
 
-    const non_mergeable = ["streamer_id"];
-    const blocked_keys = ["json_name"];
-    const merged_data = merge_data.reduce<statsData>((acc, stats_data) => {
-      const key = stats_data.key;
-      const value = stats_data.value;
+  let limit = Number(req.query.get("limit") ?? NaN);
+  limit = Math.max(0, Math.min(25, !isNaN(limit) ? limit : 10));
 
-      if (!blocked_keys.includes(key)) {
-        if (typeof value == "string") acc[key] = value;
-        if (typeof value == "number")
-          acc[key] =
-            (!non_mergeable.includes(key) && typeof acc[key] == "number"
-              ? acc[key]
-              : 0) + value;
-        if (typeof value == "object" && "data" in value)
-          acc[key] = {
-            ...value,
-            data: mergeDataState(
-              value["data"],
-              typeof acc[key] == "object" && "data" in acc[key]
-                ? acc[key]["data"]
-                : undefined,
-            ),
-          };
-      }
+  let start = req.query.get("start");
+  let end = req.query.get("end");
 
-      if (key == "json_name" && typeof value == "string")
-        acc["files"] = [
-          ...(Array.isArray(acc["files"]) ? acc["files"] : []),
-          value,
-        ];
+  const API_key = req.query.get("key");
+  const token_header = req.headers.get("x-auth-token");
 
-      return acc;
-    }, {});
+  //console.log(limit);
 
-    const end = performance.now();
+  if (!channel)
+    return res.status(500).json({
+      error: "No channel!",
+    });
 
-    merged_data["path"] = channel_path;
-    merged_data["time_taken"] = end - start;
+  if (!date)
+    return res.status(500).json({
+      error: "No date!",
+    });
 
-    console.log("Elapsed:", end - start, "ms");
+  const aviable_months = await getMonths(channel);
 
-    results = merged_data;
-  } catch (err) {
-    console.error(err);
-    return res
-      .status((err as Err).status ?? 500)
-      .json({ message: (err as Err).message ?? "Server error", error: true });
+  const is_mod = token_header ? await isMod(channel, token_header) : false;
+  const is_key = API_key == process.env.CHAT_STATS_V4_KEY;
+
+  if (!aviable_months) {
+    return res.status(500).json({
+      error: "Failed, please try again later!",
+    });
   }
 
-  return res.json(results);
+  if (
+    !aviable_months.includes(date) &&
+    !is_mod &&
+    !(is_mod && date != "custom") &&
+    !is_key
+  ) {
+    return res.status(404).json({
+      error: "Date unavailable!",
+    });
+  }
+
+  const row = channelIdQ.get(channel) as { channel_id: string } | null;
+  if (!row) return null;
+
+  //console.log(start, end);
+
+  const from = (is_mod || is_key) && date == "custom" && start ? start : `${date}-01`;
+  const to = (is_mod || is_key) && date == "custom" && end ? end : `${date}-31`;
+  const id = row.channel_id;
+
+  //console.log(from, to);
+
+  const emoteTypes = emoteQuery.values(id, from, to).flat();
+
+  const topEmotes = Object.fromEntries(
+    emoteTypes.map((type) => [
+      `${type}_emotes`,
+      topEmotesQ.all(id, type, from, to, limit),
+    ])
+  );
+
+  const data = {
+    ...statsQuery.all(id, from, to)[0]!,
+    ...Object.fromEntries(
+      categories.map((c) => [c, topQ[c]!.all(id, from, to, limit)])
+    ),
+    ...topEmotes,
+  };
+
+  //FIXME: ADD TYPES
+  const mapped = Object.entries(data).reduce<Record<string, any>>(
+    (acc, [key, stat]) => {
+      if (statsMetadata[key]) {
+        acc[key] = {
+          ...statsMetadata[key],
+          data: stat,
+        };
+      } else {
+        acc[key] = stat;
+      }
+
+      return acc;
+    },
+    {}
+  );
+
+  //console.log(mapped);
+
+  return res.status(200).json(mapped);
 });
 
 export default RequestRouter;
