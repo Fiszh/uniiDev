@@ -1,4 +1,4 @@
-import router from "$lib/routerV2";
+import router, { type reqParsed } from "$lib/routerV2";
 
 const RequestRouter = new router("v4");
 
@@ -9,6 +9,7 @@ import {
   channelIdQ,
   channelQuery,
   emoteQuery,
+  extendableCategories,
   getMonths,
   statsQuery,
   topEmotesQ,
@@ -76,7 +77,7 @@ const statsMetadata: Record<string, StatMetadata> = {
     name: "BTTV - Emotes",
     row: 3,
   },
-  "TTV_emotes": {
+  TTV_emotes: {
     name: "TTV - Emotes",
     row: 3,
   },
@@ -121,10 +122,7 @@ RequestRouter.add("GET", "/channels", async (req, res) => {
 RequestRouter.add("GET", "/months/:channel", async (req, res) => {
   const channel = req.params["channel"];
 
-  if (!channel)
-    return res.status(500).json({
-      error: "No channel!",
-    });
+  if (!channel) return;
 
   const aviable_months = await getMonths(channel);
 
@@ -137,6 +135,39 @@ RequestRouter.add("GET", "/months/:channel", async (req, res) => {
   }
 });
 
+async function checkAvailability(req: reqParsed) {
+  const channel = req.params["channel"];
+  const date = req.params["date"];
+
+  let limit = Number(req.query.get("limit") ?? NaN);
+  limit = Math.max(0, Math.min(25, !isNaN(limit) ? limit : 10));
+
+  const API_key = req.query.get("key");
+  const token_header = req.headers.get("x-auth-token");
+
+  //console.log(limit);
+
+  if (!channel || !date) return false;
+
+  const aviable_months = await getMonths(channel);
+
+  const is_mod = token_header ? await isMod(channel, token_header) : false;
+  const is_key = API_key == process.env.CHAT_STATS_V4_KEY;
+
+  if (!aviable_months) return false;
+
+  if (
+    !aviable_months.includes(date) &&
+    !is_mod &&
+    !(is_mod && date != "custom") &&
+    !is_key
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
   const channel = req.params["channel"];
   const date = req.params["date"];
@@ -147,38 +178,13 @@ RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
   let start = req.query.get("start");
   let end = req.query.get("end");
 
-  const API_key = req.query.get("key");
-  const token_header = req.headers.get("x-auth-token");
-
   //console.log(limit);
 
-  if (!channel)
-    return res.status(500).json({
-      error: "No channel!",
-    });
+  if (!channel || !date) return;
 
-  if (!date)
-    return res.status(500).json({
-      error: "No date!",
-    });
+  const aviable = await checkAvailability(req);
 
-  const aviable_months = await getMonths(channel);
-
-  const is_mod = token_header ? await isMod(channel, token_header) : false;
-  const is_key = API_key == process.env.CHAT_STATS_V4_KEY;
-
-  if (!aviable_months) {
-    return res.status(500).json({
-      error: "Failed, please try again later!",
-    });
-  }
-
-  if (
-    !aviable_months.includes(date) &&
-    !is_mod &&
-    !(is_mod && date != "custom") &&
-    !is_key
-  ) {
+  if (!aviable) {
     return res.status(404).json({
       error: "Date unavailable!",
     });
@@ -189,8 +195,8 @@ RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
 
   //console.log(start, end);
 
-  const from = (is_mod || is_key) && date == "custom" && start ? start : `${date}-01`;
-  const to = (is_mod || is_key) && date == "custom" && end ? end : `${date}-31`;
+  const from = start ? start : `${date}-01`;
+  const to = end ? end : `${date}-31`;
   const id = row.channel_id;
 
   //console.log(from, to);
@@ -232,6 +238,55 @@ RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
   //console.log(mapped);
 
   return res.status(200).json(mapped);
+});
+
+type Category = keyof typeof extendableCategories;
+
+const isCategory = (key: string): key is Category =>
+  Object.hasOwn(extendableCategories, key);
+
+RequestRouter.add("GET", "/months/:channel/:date/:key", async (req, res) => {
+  const channel = req.params["channel"];
+  const date = req.params["date"];
+  const key = req.params["key"];
+
+  const query = req.query.get("q");
+  const revesed = req.query.get("r");
+  const position = req.query.get("p");
+  const id = req.query.get("id");
+
+  let start = req.query.get("start");
+  let end = req.query.get("end");
+
+  if (!channel || !date || !key) return;
+
+  const aviable = await checkAvailability(req);
+
+  if (!aviable || !position || !id) {
+    return res.status(404).json({
+      error: "Date unavailable!",
+    });
+  }
+
+  if (!isCategory(key))
+    return new Response("Invalid category", { status: 400 });
+
+  const from = start ? start : `${date}-01`;
+  const to = end ? end : `${date}-31`;
+
+  const emote_type = key.endsWith("_emotes")
+    ? key.slice(0, -"_emotes".length)
+    : null;
+
+  return res.status(200).json(
+    extendableCategories[key].all({
+      id,
+      from,
+      to,
+      start: position,
+      type: emote_type,
+    })
+  );
 });
 
 export default RequestRouter;

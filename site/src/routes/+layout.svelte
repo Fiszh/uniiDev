@@ -87,11 +87,12 @@
 
     gap: 4rem;
 
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
 
     .content {
-      flex: 1 0 auto;
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow: auto;
     }
   }
 </style>

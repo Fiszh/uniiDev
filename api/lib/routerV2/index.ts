@@ -71,7 +71,7 @@ export interface Res {
   send: (body?: BodyInit | Response) => Response;
 }
 
-interface reqParsed extends Request {
+export interface reqParsed extends Request {
   params: Record<string, string>;
   query: URLSearchParams;
 }

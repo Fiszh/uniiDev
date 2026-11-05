@@ -9,3 +9,5 @@ export let TopBar = writable({
 export let disable_root = writable<boolean>(false);
 
 export const API_URL = import.meta.env.API_URL;
+
+export const showLogin = writable<boolean>(true);

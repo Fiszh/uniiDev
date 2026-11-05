@@ -1,6 +1,6 @@
 <script lang="ts">
   import LoginButton from "../components/LoginButton.svelte";
-  import { TopBar } from "../stores/global";
+  import { showLogin, TopBar } from "../stores/global";
   import { validateToken } from "$lib/twitch";
   import { delCookie, setCookie } from "$lib/cookie";
   import { dev } from "$app/environment";
@@ -23,13 +23,15 @@
 </script>
 
 <topbar>
-  <a href="/">
+  <a href="/" data-sveltekit-preload-data="off">
     unii.dev {#if dev}
       <small id="dev-version">DEV</small>
     {/if}
   </a>
 
-  <LoginButton onToken={handleToken} onLogOut={logOut} />
+  {#if $showLogin}
+    <LoginButton onToken={handleToken} onLogOut={logOut} />
+  {/if}
 </topbar>
 
 <style lang="scss">

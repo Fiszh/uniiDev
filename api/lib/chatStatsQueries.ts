@@ -119,3 +119,66 @@ export async function getMonths(channel: string): Promise<String[] | false> {
 
   return false;
 }
+
+function getChattersQuery(expr: string) {
+  return db.query(`
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY SUM(${expr}) DESC, u.user_id) AS pos,
+                u.user_id,
+                i.username,
+                SUM(${expr}) AS value
+            FROM users u
+            LEFT JOIN usersIndex i ON i.user_id = u.user_id
+            WHERE u.channel_id = $id AND u.day BETWEEN $from AND $to
+            GROUP BY u.user_id
+            HAVING value > 0
+            ORDER BY value DESC, u.user_id
+            LIMIT 25 OFFSET $start - 1
+        `);
+}
+
+function getEmoteQuery() {
+  return db.query(`
+    WITH agg AS (
+      SELECT emote_id, SUM(uses) AS total
+      FROM emotes
+      WHERE channel_id = $id
+        AND type = $type
+        AND day BETWEEN $from AND $to
+      GROUP BY emote_id
+      HAVING SUM(uses) > 0
+      ORDER BY SUM(uses) DESC, emote_id
+      LIMIT 25 OFFSET $start - 1
+    )
+    SELECT
+      $start + ROW_NUMBER() OVER (ORDER BY a.total DESC, a.emote_id) - 1 AS pos,
+      i.name,
+      a.emote_id,
+      CASE $type
+        WHEN '7TV' THEN 'https://cdn.7tv.app/emote/' || a.emote_id || '/2x.webp'
+        WHEN 'BTTV' THEN 'https://cdn.betterttv.net/emote/' || a.emote_id || '/2x'
+        WHEN 'FFZ' THEN 'https://cdn.frankerfacez.com/emote/' || a.emote_id || '/2'
+        WHEN 'TTV' THEN 'https://static-cdn.jtvnw.net/emoticons/v2/' || a.emote_id || '/default/dark/2.0'
+      END AS url,
+      a.total AS uses
+    FROM agg a
+    LEFT JOIN emotesIndex i
+      ON i.channel_id = $id AND i.emote_id = a.emote_id AND i.type = $type
+    ORDER BY a.total DESC, a.emote_id
+  `);
+}
+
+export const extendableCategories = {
+  message_count_online: getChattersQuery("message_count_online"),
+  message_count_offline: getChattersQuery("message_count_offline"),
+  message_count_overall: getChattersQuery(
+    "message_count_online + message_count_offline"
+  ),
+  at_streamer: getChattersQuery("at_streamer"),
+  top_emoters: getChattersQuery("top_emoters"),
+  top_linkers: getChattersQuery("top_linkers"),
+  "7TV_emotes": getEmoteQuery(),
+  "BTTV_emotes": getEmoteQuery(),
+  "FFZ_emotes": getEmoteQuery(),
+  "TTV_emotes": getEmoteQuery(),
+};
