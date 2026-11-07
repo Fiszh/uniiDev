@@ -121,7 +121,7 @@ export function setSecurityHeaders(res: Res | Response): Res | Response {
 
 export function getRequestIP(
   initReq: Request,
-  server: Bun.Server<undefined>,
+  server: Bun.Server<undefined>
 ): string | null {
   const cfIP = initReq.headers.get("cf-connecting-ip");
   if (cfIP) return cfIP;
@@ -163,7 +163,7 @@ export default class Router {
     req: Request,
     found_route: string,
     method: HTTPMethod,
-    server: Bun.Server<undefined>,
+    server: Bun.Server<undefined>
   ): Promise<Response | undefined> {
     const url = new URL(req.url);
 
@@ -183,15 +183,15 @@ export default class Router {
         return new Response(typeof res == "object" ? JSON.stringify(res) : res);
       } else if (module.default[method].error) {
         throw new Error(
-          `Router failed!\nRouter Error Type: ${module.default[method].type}`,
+          `Router failed!\nRouter Error Type: ${module.default[method].type}`
         );
       }
 
       return initedRes
         .json(
           this.CreateError(
-            `No ${method.toUpperCase()} found on ${url.pathname}`,
-          ),
+            `No ${method.toUpperCase()} found on ${url.pathname}`
+          )
         )
         .status(500)
         .send();
@@ -200,19 +200,19 @@ export default class Router {
         err instanceof Error
           ? err.message
           : typeof err === "object" && err !== null && "type" in err
-            ? (err as any).type
-            : String(err);
+          ? (err as any).type
+          : String(err);
 
       console.error(
         `Route error: path=${url.pathname} method=${method} type=${msg}`,
-        err instanceof Error ? err.stack : err,
+        err instanceof Error ? err.stack : err
       );
 
       return initedRes
         .json(
           this.CreateError(
-            "Failed to load route! Please contact if issue persist...",
-          ),
+            "Failed to load route! Please contact if issue persist..."
+          )
         )
         .status(500)
         .send();
@@ -278,7 +278,7 @@ export default class Router {
   };
 
   sanitizeObject(
-    obj: string | any[] | Record<string, any>,
+    obj: string | any[] | Record<string, any>
   ): string | any[] | Record<string, any> {
     if (typeof obj === "string") {
       return obj
@@ -299,7 +299,7 @@ export default class Router {
 
   async initRes(
     initReq: Request,
-    server: Bun.Server<undefined>,
+    server: Bun.Server<undefined>
   ): Promise<InitedRes | Response> {
     const method = initReq.method as HTTPMethod;
     const router_url = new URL(initReq.url);
@@ -314,7 +314,7 @@ export default class Router {
 
     if (method === "OPTIONS") {
       options_method = initReq.headers.get(
-        "access-control-request-method",
+        "access-control-request-method"
       ) as HTTPMethod;
 
       if (!options_method) {
@@ -349,19 +349,22 @@ export default class Router {
     res.headers.set("Access-Control-Allow-Methods", options_method || method);
 
     // CHECK CORS
-    const origin = req.headers.get("Origin");
-    if (!origin) {
-      // NO ORIGIN HEADER, ALLOW ALL
-      res.headers.set("Access-Control-Allow-Origin", "*");
-    } else {
-      // ORIGIN HEADER PRESENT
-      res.headers.set(
-        "Access-Control-Allow-Origin",
-        globalThis.allowedOrigins?.includes(new URL(origin).host)
-          ? origin
-          : "null",
-      );
-    }
+    const origin = req.headers.get("origin");
+
+    let originOk = false;
+    if (origin)
+      originOk = globalThis.allowedOrigins.includes(new URL(origin).host);
+
+    const isNavigation =
+      req.headers.get("sec-fetch-mode") === "navigate" &&
+      req.headers.get("sec-fetch-dest") === "document";
+
+    const ok = origin ? originOk : isNavigation;
+
+    if (originOk) res.headers.set("Access-Control-Allow-Origin", origin!);
+
+    if (!ok)
+      return res.json(this.CreateError("Not allowed.")).status(403).send();
 
     return {
       method,
@@ -393,7 +396,7 @@ export default class Router {
 
               return acc;
             },
-            {},
+            {}
           ),
         };
       }
@@ -420,7 +423,7 @@ export default class Router {
 
   async exec(
     initReq: Request,
-    server: Bun.Server<undefined>,
+    server: Bun.Server<undefined>
   ): Promise<Response | undefined> {
     const initedRes = await this.initRes(initReq, server);
 
@@ -468,7 +471,7 @@ export default class Router {
     route: string,
     res: Res,
     req: reqParsed,
-    options_method?: HTTPMethod,
+    options_method?: HTTPMethod
   ): Promise<Response> {
     // CHECK FOR VALID METHOD AND ROUTE
     if (
@@ -483,7 +486,7 @@ export default class Router {
     // HANDLE PARAMS
     const routeHandler = this.findRoute(
       route,
-      this.routes[options_method || method],
+      this.routes[options_method || method]
     );
 
     if (!routeHandler) throw new Error(`${method} does not exist on ${route}`);
@@ -510,7 +513,7 @@ export default class Router {
   private handler<T>(
     route: string,
     func: (req: reqParsed, res: Res, ws?: WebSocket) => Promise<T>,
-    settings?: RouteHandler["settings"],
+    settings?: RouteHandler["settings"]
   ) {
     if (!route_regex.test(route)) throw new Error(`Invalid route: ${route}`);
 
