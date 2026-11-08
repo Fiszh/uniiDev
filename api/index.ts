@@ -41,6 +41,8 @@ Bun.serve({
   async fetch(req, server) {
     const url = new URL(req.url);
 
+    if (url.pathname == "/health") return new Response("OK", { status: 200 });
+
     const isCDN = url.host.startsWith("cdn.");
 
     let initedRes = await Router.initRes(req, server, { public: isCDN });
@@ -49,7 +51,6 @@ Bun.serve({
 
     const quickRes = initedRes as InitedRes;
 
-    if (url.pathname == "/health") return new Response("OK", { status: 200 });
     if (url.pathname == "/api-spec.json")
       return quickRes.res
         .body(Bun.file(path.resolve(".", "docs", "api-spec.json")).stream())
