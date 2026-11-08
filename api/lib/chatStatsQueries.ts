@@ -18,7 +18,7 @@ export const categories = [
 export const channelQuery = db.query(`SELECT * FROM channelsIndex LIMIT ?`);
 
 export const channelIdQ = db.query(
-  `SELECT channel_id FROM channelsIndex WHERE username = ? COLLATE NOCASE`
+  `SELECT channel_id FROM channelsIndex WHERE username = ? COLLATE NOCASE`,
 );
 
 function exprFor(col: string) {
@@ -45,7 +45,7 @@ export const topQ = Object.fromEntries(
       ORDER BY value DESC
       LIMIT ?
     `),
-  ])
+  ]),
 );
 
 export const emoteQuery = db.query(`
@@ -172,13 +172,13 @@ export const extendableCategories = {
   message_count_online: getChattersQuery("message_count_online"),
   message_count_offline: getChattersQuery("message_count_offline"),
   message_count_overall: getChattersQuery(
-    "message_count_online + message_count_offline"
+    "message_count_online + message_count_offline",
   ),
   at_streamer: getChattersQuery("at_streamer"),
   top_emoters: getChattersQuery("top_emoters"),
   top_linkers: getChattersQuery("top_linkers"),
   "7TV_emotes": getEmoteQuery(),
-  "BTTV_emotes": getEmoteQuery(),
-  "FFZ_emotes": getEmoteQuery(),
-  "TTV_emotes": getEmoteQuery(),
+  BTTV_emotes: getEmoteQuery(),
+  FFZ_emotes: getEmoteQuery(),
+  TTV_emotes: getEmoteQuery(),
 };

@@ -17,14 +17,10 @@ const ttl = 60 * 1000;
 RequestRouter.add("GET", "/", async (req, res) => {
   console.log("channel route hit");
   const referer = req.headers.get("referer") ?? "No referer";
-  const ip = req.headers.get("x-forwarded-for");
+  //const ip = req.headers.get("x-forwarded-for");
+  const rayId = req.headers.get("cf-ray");
   const overlayVersion = req.headers.get("version") ?? "Unknown";
   const agent = req.headers.get("User-Agent");
-
-  if (!ip)
-    return res
-      .status(500)
-      .json({ error: "Server error, if continues please contact." });
 
   const channelName = req.query.get("name");
   const channelID = req.query.get("id");
@@ -33,7 +29,11 @@ RequestRouter.add("GET", "/", async (req, res) => {
   const webhookMessage = [
     {
       name: "Channel",
-      value: `${channelName ? `[${channelName}](https://twitch.tv/${channelName})` : `[${channelID}](https://api.unii.dev/twitch/${channelID})`}`,
+      value: `${
+        channelName
+          ? `[${channelName}](https://twitch.tv/${channelName})`
+          : `[${channelID}](https://api.unii.dev/twitch/${channelID})`
+      }`,
     },
     {
       name: "Overlay version",
@@ -48,8 +48,8 @@ RequestRouter.add("GET", "/", async (req, res) => {
       value: agent,
     },
     {
-      name: "IP",
-      value: `[${ip}](https://ipinfo.io/${ip})`,
+      name: "Ray id",
+      value: rayId,
     },
     {
       name: "No cache",

@@ -13,7 +13,8 @@ RequestRouter.add("GET", "/resolve/:handle", async (req, res) => {
   const handle = req.params["handle"];
 
   const referer = req.headers.get("referer") ?? "No referer";
-  const ip = req.headers.get("x-forwarded-for");
+  //const ip = req.headers.get("x-forwarded-for");
+  const rayId = req.headers.get("cf-ray");
 
   if (!handle || !decodeURIComponent(handle).startsWith("@"))
     return res.status(400).json({
@@ -44,8 +45,8 @@ RequestRouter.add("GET", "/resolve/:handle", async (req, res) => {
       value: referer,
     },
     {
-      name: "IP",
-      value: `[${ip}](https://ipinfo.io/${ip})`,
+      name: "Ray id",
+      value: rayId,
     },
   ];
 

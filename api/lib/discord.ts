@@ -26,7 +26,9 @@ export async function sendMessage(
 
   const response = await fetch(
     api_base +
-      `webhooks/${id}/${token}${message_id ? `/messages/${message_id}` : "?wait=true"}`,
+      `webhooks/${id}/${token}${
+        message_id ? `/messages/${message_id}` : "?wait=true"
+      }`,
     {
       method: message_id ? "PATCH" : "POST",
       headers: {
@@ -45,7 +47,7 @@ export async function sendMessage(
   return data;
 }
 
-async function sendQueuedMessage(title: string = "API Message", url: string) {
+async function sendQueuedMessage(url: string) {
   const body: (string | Record<string, any>)[] | undefined =
     queuedMessages[url];
 
@@ -55,9 +57,9 @@ async function sendQueuedMessage(title: string = "API Message", url: string) {
     if (typeof message == "string") return message;
 
     return {
-      title,
+      title: message.title ?? "API Message",
       fields: !message.content ? message : undefined,
-      description: message.content || undefined,
+      description: message.content ?? undefined,
       color: message.color ?? 0x00ff00,
       timestamp: (message.timestamp instanceof Date
         ? message.timestamp
@@ -71,14 +73,13 @@ async function sendQueuedMessage(title: string = "API Message", url: string) {
 }
 
 export async function queueMessage(
-  title: string,
   url: string,
   body: string | Record<string, any>,
   time: number,
 ) {
   if (queuedMessages[url]) {
     if (queuedMessages[url].length >= 10) {
-      await sendQueuedMessage(title, url);
+      await sendQueuedMessage(url);
     } else {
       return queuedMessages[url].push(body);
     }
@@ -86,5 +87,5 @@ export async function queueMessage(
 
   queuedMessages[url] = [body];
 
-  setTimeout(() => sendQueuedMessage(title, url), time);
+  setTimeout(() => sendQueuedMessage(url), time);
 }

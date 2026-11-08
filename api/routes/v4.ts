@@ -95,7 +95,7 @@ async function isMod(channel: string, token?: string | null) {
   const moddedChannels = await getModdedChannels(
     token,
     user_info.client_id,
-    user_info.user_id
+    user_info.user_id,
   );
 
   //console.log(moddedChannels);
@@ -207,13 +207,13 @@ RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
     emoteTypes.map((type) => [
       `${type}_emotes`,
       topEmotesQ.all(id, type, from, to, limit),
-    ])
+    ]),
   );
 
   const data = {
     ...statsQuery.all(id, from, to)[0]!,
     ...Object.fromEntries(
-      categories.map((c) => [c, topQ[c]!.all(id, from, to, limit)])
+      categories.map((c) => [c, topQ[c]!.all(id, from, to, limit)]),
     ),
     ...topEmotes,
   };
@@ -232,7 +232,7 @@ RequestRouter.add("GET", "/months/:channel/:date", async (req, res) => {
 
       return acc;
     },
-    {}
+    {},
   );
 
   //console.log(mapped);
@@ -285,7 +285,7 @@ RequestRouter.add("GET", "/months/:channel/:date/:key", async (req, res) => {
       to,
       start: position,
       type: emote_type,
-    })
+    }),
   );
 });
 

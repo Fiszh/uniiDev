@@ -117,8 +117,10 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
     version: pkg["version"],
   };
 
-  const referer = req.headers.get("referer") ?? "No referer";
-  const reqIP = req.headers.get("x-forwarded-for") as string;
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer") ?? origin ?? "none";
+  //const reqIP = req.headers.get("x-forwarded-for") as string;
+  const rayId = req.headers.get("cf-ray");
 
   ws.addEventListener("message", async (ev) => {
     const data = RequestRouter.sanitizeObject(JSON.parse(ev.data)) as Record<
@@ -204,8 +206,8 @@ RequestRouter.add("ws", "/", async (req, res, ws) => {
       value: referer,
     },
     {
-      name: "IP",
-      value: `[${reqIP}](https://ipinfo.io/${reqIP})`,
+      name: "Ray id",
+      value: rayId,
     },
   ];
 

@@ -7,9 +7,9 @@ export async function sendAPILog(
 ) {
   if (process.env.API_LOGS)
     queueMessage(
-      title,
       process.env.API_LOGS,
       {
+        title,
         content: message
           .flatMap((msg) => msg.name + ": " + msg.value)
           .join("\n"),

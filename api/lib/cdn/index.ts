@@ -34,7 +34,11 @@ export default async function serveCDN(res: Res, url: URL): Promise<Response> {
   } catch (err: unknown) {
     if (err instanceof Error && "code" in err && err.code != "ENOENT") {
       console.error(
-        `CDN request failed: path=${url.pathname} type=${typeof err === "object" && err !== null && "message" in err ? (err as { message: string }).message : String(err)}`,
+        `CDN request failed: path=${url.pathname} type=${
+          typeof err === "object" && err !== null && "message" in err
+            ? (err as { message: string }).message
+            : String(err)
+        }`,
         err instanceof Error ? err.stack : err,
       );
 
@@ -42,10 +46,6 @@ export default async function serveCDN(res: Res, url: URL): Promise<Response> {
         .status(500)
         .json({ message: "Internal CDN Server Error", error: true })
         .send();
-      return new Response(
-        JSON.stringify({ message: "Internal CDN Server Error", error: true }),
-        { status: 500 },
-      );
     }
   }
 
@@ -53,8 +53,4 @@ export default async function serveCDN(res: Res, url: URL): Promise<Response> {
     .status(404)
     .json({ message: "File not found", error: true })
     .send();
-  return new Response(
-    JSON.stringify({ message: "File not found", error: true }),
-    { status: 404 },
-  );
 }

@@ -7,7 +7,7 @@ import pkg from "./package.json";
 
 import { type InitedRes } from "$lib/routerV2";
 import WsAdapter from "./lib/routerV2/wsAdapter";
-import { API_URL } from "$store/globals";
+import { API_URL, GET_PORT } from "$store/globals";
 
 import serveCDN from "./lib/cdn";
 import router from "$lib/routerV2";
@@ -37,11 +37,13 @@ process.on("unhandledRejection", (reason) => {
 });
 
 Bun.serve({
-  port: 3000,
+  port: GET_PORT(),
   async fetch(req, server) {
     const url = new URL(req.url);
 
-    let initedRes = await Router.initRes(req, server);
+    const isCDN = url.host.startsWith("cdn.");
+
+    let initedRes = await Router.initRes(req, server, { public: isCDN });
 
     if (initedRes instanceof Response) return initedRes;
 
@@ -53,7 +55,7 @@ Bun.serve({
         .body(Bun.file(path.resolve(".", "docs", "api-spec.json")).stream())
         .send();
 
-    if (url.host.startsWith("cdn.")) return await serveCDN(quickRes.res, url);
+    if (isCDN) return await serveCDN(quickRes.res, url);
 
     if (url.pathname === "/" && !url.host.startsWith("cdn."))
       return quickRes.res.html(welcomePage).send();

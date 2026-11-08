@@ -5,7 +5,8 @@
   "scripts": {
     "build": "bun build index.ts --outdir ./build --target=bun --sourcemap",
     "dev": "bun run --watch index.ts",
-    "dev:local": "NODE_ENV=development bun run --watch index.ts"
+    "dev:local": "NODE_ENV=development bun run --watch index.ts",
+    "dev:v2": "NODE_ENV=v2 bun run --watch index.ts"
   },
   "private": true,
   "devDependencies": {
@@ -14,7 +15,7 @@
   "peerDependencies": {
     "typescript": "^5.9.3"
   },
-  "version": "2.0.1",
+  "version": "2.1.0",
   "dependencies": {
     "@scalar/api-reference": "^1.62.2",
     "axios": "^1.18.1",
