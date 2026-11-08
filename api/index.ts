@@ -44,8 +44,11 @@ Bun.serve({
     if (url.pathname == "/health") return new Response("OK", { status: 200 });
 
     const isCDN = url.host.startsWith("cdn.");
+    const isSpec = url.pathname == "/api-spec.json";
 
-    let initedRes = await Router.initRes(req, server, { public: isCDN });
+    let initedRes = await Router.initRes(req, server, {
+      public: isCDN || isSpec,
+    });
 
     if (initedRes instanceof Response) return initedRes;
 
@@ -78,7 +81,7 @@ Bun.serve({
       req,
       url.pathname.split("/")[1] || "",
       req.method as HTTPMethod,
-      server,
+      server
     );
   },
   websocket: {
